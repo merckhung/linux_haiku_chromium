@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: MIT
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "widget_gallery.cpp",
+])
+
+cc_binary(
+    name = "widget_gallery",
+    srcs = [
+        "widget_gallery.cpp",
+        "//userland:haiku_compat.h",
+    ],
+    copts = [
+        "-std=c++20",
+        "-O2",
+        "-D_GNU_SOURCE",
+        "-Wno-multichar",
+        "-Wno-address-of-packed-member",
+        "-Wno-deprecated-enum-enum-conversion",
+        "-Wno-deprecated-enum-float-conversion",
+        "-Wno-format",
+        "-Wno-unused-variable",
+        "-Wno-unused-but-set-variable",
+        "-include",
+        "config/types.h",
+        "-include",
+        "userland/haiku_compat.h",
+    ],
+    linkopts = [
+        "-lpthread",
+        "-lrt",
+        "-Wl,--allow-shlib-undefined",
+    ] + select({
+        "@platforms//cpu:aarch64": [],
+        "//conditions:default": ["-lz"],
+    }),
+    deps = [
+        "//userland/haiku_libbe:haiku_libbe_so",
+        "//userland/haiku_libroot",
+        "@haiku//:headers",
+    ] + select({
+        "@platforms//cpu:aarch64": ["@lhc_zlib//:zlib"],
+        "//conditions:default": [],
+    }),
+)

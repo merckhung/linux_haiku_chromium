@@ -1,0 +1,273 @@
+Computing main repo mapping:
+Loading:
+Loading: 0 packages loaded
+Analyzing: target //minimal_rootfs:verify (0 packages loaded, 0 targets configured)
+Analyzing: target //minimal_rootfs:verify (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //minimal_rootfs:verify (1 packages loaded, 8 targets configured).
+INFO: Found 1 target...
+Target //minimal_rootfs:verify up-to-date:
+  bazel-bin/minimal_rootfs/verify
+INFO: Elapsed time: 1.005s, Critical Path: 0.02s
+INFO: 6 processes: 6 internal.
+INFO: Build completed successfully, 6 total actions
+INFO: Running command line: bazel-bin/minimal_rootfs/verify kernel/bzImage minimal_rootfs/initramfs.cpio.gz scripts/verify_qemu_boot.py
+Verification started UTC: 2026-10-26T23:40:22.285999+00:00
+Artifact kernel sha256: c0709e515d15624513704ba984d79db9dd6c2a46bf5ca1b9faff7bda5b7a8b59
+Artifact initrd sha256: ee1de3e81d386fd9d63f01626dfdf6d70139a6110667a5d4849a4f0b1e34ec1e
+[*] Launching QEMU: qemu-system-x86_64 -kernel <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/minimal_rootfs/verify.runfiles/_main/kernel/bzImage -initrd <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/minimal_rootfs/verify.runfiles/_main/minimal_rootfs/initramfs.cpio.gz -m 512M -smp 2 -nographic -serial mon:stdio -append console=ttyS0 haiku.mode=tier1 quiet panic=1 -no-reboot -enable-kvm -cpu host
+cSeaBIOS (version 1.16.3-debian-1.16.3-2)
+
+
+iPXE (https://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+1EFC7C30+1EF07C30 CA00
+Press Ctrl-B to configure iPXE (PCI 00:03.0)...
+
+
+
+Booting from ROM...
+c
+[serial] =================================================================
+=== Linux + Haiku GUI + Chromium Embedded System (64-bit x86_64) ===
+[serial] =================================================================
+
+[init] Network eth0 configured: 10.0.2.15/24 gw 10.0.2.2 dns 10.0.2.3
+[init] Kernel command line: console=ttyS0 haiku.mode=tier1 quiet panic=1
+
+[init] Executing Haiku libroot verification suite...
+[serial] =========================================
+=== Haiku-on-Linux libroot Test Suite ===
+[serial] =========================================
+[TEST] system_info...
+       cpu0 active_time=490000 us matches live /proc/stat bounds (490000..490000)
+       cpu_count=2, max_pages=124195, system_time=666882 us: PASS
+[TEST] areas...
+       create_area, clone_area, shared memory mutation, delete_area: PASS
+[TEST] ports...
+       create_port, find_port, write_port, read_port, timeout: PASS
+[TEST] semaphores...
+       create_sem, acquire_sem, timeout, release_sem: PASS
+[TEST] threads...
+       contended readers/writers, recursive writer, single initialization: PASS
+       spawn_thread, suspended start, resume_thread, send/receive_data, wait_for_thread: PASS
+[TEST] find_directory...
+       find_directory B_SYSTEM_DIRECTORY, B_SYSTEM_FONTS_DIRECTORY: PASS
+[serial] =========================================
+=== ALL 6 HAIKU LIBROOT SUITES PASSED ===
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] ==
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] ==
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] ==
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] ==
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] ==
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+ini
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+t
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+]
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+ha
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+i
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+k
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+u
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+_
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+l
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+ib
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+r
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+o
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+o
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+t_
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+t
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+e
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+s
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+t
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+e
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+x
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+i
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+t
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+ed
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+w
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+it
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+h
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+c
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+od
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+e
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+:
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+ 0
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+in
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+i
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+t
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+]
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+PA
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+S
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+S
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+]
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+ T
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+i
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+e
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+r
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+ 1
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+v
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+e
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+r
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+i
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+fi
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+c
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+a
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+t
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+io
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+n passed!
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '[PASS] Tier 1 verification passed!'
+
+[+] All required verification milestones observed!
+
+[*] Execution finished in 1.83 seconds.
+[+] QEMU headless verification SUCCESSFUL.

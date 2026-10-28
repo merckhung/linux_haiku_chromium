@@ -1,0 +1,6 @@
+This identifier denotes the collection of component licenses applying to the
+Chromium, ANGLE and SwiftShader prebuilt distribution. It is not a new license.
+See licenses/chromium/NOTICE.txt and licenses/chromium/about_credits.html for
+the bundled terms and copyright notices,
+and THIRD_PARTY_NOTICES.md for source availability. Each component retains its
+own terms; this collection must not be treated as wholly MIT or BSD licensed.

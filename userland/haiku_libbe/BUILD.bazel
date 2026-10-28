@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: MIT
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "haiku_libbe",
+    srcs = [
+        "@haiku//:support_sources",
+        "@haiku//:app_sources",
+        "@haiku//:storage_sources",
+        "@haiku//:interface_sources",
+        "@haiku//:messaging_sources",
+        "@haiku//:shared_sources",
+        "haiku_locale_stubs.cpp",
+        "Looper.cpp",
+        "AppMisc.cpp",
+        "Application.cpp",
+        "MessageRunner.cpp",
+        "haiku_ozone_capi.cpp",
+    ],
+    hdrs = [
+        "haiku_ozone_capi.h",
+        "//userland:haiku_compat.h",
+        "//userland/compat/sys:stat.h",
+    ],
+    includes = [
+        "../",
+    ],
+    copts = [
+        "-std=c++20",
+        "-O2",
+        "-fPIC",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-D_GNU_SOURCE",
+        "-DRUN_WITHOUT_REGISTRAR=1",
+        "-Wno-multichar",
+        "-Wno-address-of-packed-member",
+        "-Wno-deprecated-enum-enum-conversion",
+        "-Wno-deprecated-enum-float-conversion",
+        "-include",
+        "config/types.h",
+        "-include",
+        "userland/haiku_compat.h",
+    ],
+    deps = [
+        "@haiku//:headers",
+        "//userland/haiku_libroot",
+    ],
+    linkstatic = True,
+    alwayslink = True,
+)
+
+cc_binary(
+    name = "libbe.so",
+    linkshared = True,
+    additional_linker_inputs = [
+        ":libbe.version",
+    ],
+    linkopts = [
+        "-Wl,--version-script=$(location :libbe.version)",
+    ] + select({
+        "@platforms//cpu:aarch64": [],
+        "//conditions:default": ["-lz"],
+    }),
+    deps = [
+        ":haiku_libbe",
+    ] + select({
+        "@platforms//cpu:aarch64": ["@lhc_zlib//:zlib"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_import(
+    name = "haiku_libbe_so",
+    shared_library = ":libbe.so",
+    hdrs = [
+        "//userland:haiku_compat.h",
+        "//userland/compat/sys:stat.h",
+    ],
+    deps = [
+        "@haiku//:headers",
+        "//userland/haiku_libroot",
+    ],
+)

@@ -1,0 +1,80 @@
+# SPDX-License-Identifier: MIT
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "REUSE.toml",
+])
+
+alias(name = "kernel", actual = "//kernel:bzImage")
+alias(name = "minimal_image", actual = "//minimal_rootfs:image")
+alias(name = "rootfs_image", actual = "//rootfs:image")
+alias(name = "chromium_image", actual = "//chromium_rootfs:image")
+
+sh_binary(
+    name = "run",
+    srcs = ["//scripts:run_desktop.sh"],
+    data = [
+        "//kernel:bzImage",
+        "//rootfs:image",
+    ],
+    args = [
+        "$(location //kernel:bzImage)",
+        "$(location //rootfs:image)",
+    ],
+)
+
+sh_binary(
+    name = "run_gallery",
+    srcs = ["//scripts:run_desktop.sh"],
+    data = [
+        "//kernel:bzImage",
+        "//rootfs:image",
+    ],
+    args = [
+        "$(location //kernel:bzImage)",
+        "$(location //rootfs:image)",
+    ],
+)
+
+sh_binary(
+    name = "run_chromium",
+    srcs = ["//scripts:run_desktop.sh"],
+    data = [
+        "//kernel:bzImage",
+        "//chromium_rootfs:image",
+    ],
+    args = [
+        "$(location //kernel:bzImage)",
+        "$(location //chromium_rootfs:image)",
+    ],
+)
+
+sh_binary(
+    name = "run_chromium_arm64",
+    srcs = ["//scripts:run_desktop.sh"],
+    data = [
+        "//kernel:Image",
+        "//chromium_rootfs:image_arm64",
+    ],
+    args = [
+        "$(location //kernel:Image)",
+        "$(location //chromium_rootfs:image_arm64)",
+    ],
+)
+
+sh_binary(
+    name = "run_arm64",
+    srcs = ["//scripts:run_desktop.sh"],
+    data = [
+        "//kernel:Image",
+        "//rootfs:image_arm64",
+    ],
+    args = [
+        "$(location //kernel:Image)",
+        "$(location //rootfs:image_arm64)",
+    ],
+)

@@ -1,0 +1,17 @@
+# Bazel outputs
+bazel-*
+.cache/
+out/
+runtime/
+*.o
+*.a
+*.so
+!userland/chromium/prebuilt/**
+*.dylib
+*.log
+*.img
+*.iso
+*.cpio.gz
+*.bzImage
+*.ppm
+__pycache__/

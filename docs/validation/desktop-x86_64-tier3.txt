@@ -1,0 +1,106 @@
+
+=================================================================
+=== Linux + Haiku GUI + Chromium Embedded System (64-bit x86_64) ===
+=================================================================
+
+[init] Network eth0 configured: 10.0.2.15/24 gw 10.0.2.2 dns 10.0.2.3
+[init] Kernel command line: console=ttyS0 root=/dev/ram0 rw video=Virtual-1:1280x800@60 haiku.mode=chromium quiet panic=1
+
+[init] Launching Haiku GUI subsystem...
+[init] Forked app_server with PID 59
+[GlobalFontManager] _AddPath: /boot/system/data/fonts
+could not watch directory 2:1037
+[GlobalFontManager] _AddPath: /boot/system/data/fonts
+[GlobalFontManager] _AddPath: /boot/system
+could not watch directory 2:1032
+[GlobalFontManager] _AddPath: /boot/system
+[GlobalFontManager] _SetDefaultFonts() entered. Directory count: 2
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system'
+could not watch directory 2:1040
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/settings'
+could not watch directory 2:1039
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/servers'
+could not watch directory 2:1038
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/lib'
+could not watch directory 2:1035
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data'
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data/fonts'
+could not watch directory 2:1036
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data/artwork'
+could not watch directory 2:1034
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/bin'
+could not watch directory 2:1033
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/apps'
+could not watch directory 2:1149
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/apps/locales'
+[GlobalFontManager] _ScanFontsIfNecessary() done. Family count: 3
+[?25l[?1c[app_server/LinuxFB] Detected /dev/fb0: 1280x800, stride 5120, smem 4096000 bytes
+[Desktop] Init() started for user 0
+app_server: Finding best mode for 1024x768 (8, 60 Hz, strict) failed
+app_server: Finding best mode for 800x600 (8, 60 Hz) failed
+app_server: Use 0x0 (8) instead.
+[Desktop] Virtual screen configured. HWInterface: 0x55d693e05e60
+[app_server/Evdev] Added input device /dev/input/event4 (ImExPS/2 Generic Explorer Mouse)
+[app_server/Evdev] Added input device /dev/input/event3 (AT Translated Set 2 keyboard)
+[app_server/Evdev] Added input device /dev/input/event2 (QEMU Virtio Keyboard)
+[app_server/Evdev] Added input device /dev/input/event1 (QEMU Virtio Tablet)
+[app_server/Evdev] Added input device /dev/input/event0 (Power Button)
+[Desktop] Drawing background...
+[Desktop] Init() finished successfully.
+[app_server] Primary Desktop initialized successfully (port 8)
+[app_server] AppServer constructed with status: 0 (Success)
+[app_server] Entering server->Run()...
+[init] app_server ready after 100 ms
+[init] Launching Haiku Deskbar (Taskbar)...
+[init] Forked Deskbar with PID 66
+[init] Launching Haiku Terminal...
+[init] Forked Terminal with PID 77
+[init] Launching Haiku GUI Widget Gallery...
+[init] Forked WidgetGallery with PID 86
+[WidgetGallery] Initializing Full-Blown Haiku GUI Widget Gallery...
+[WidgetGallery] Initializing HaikuControlLook fallback...
+[WidgetGallery] _InitLayout start
+[WidgetGallery] Creating BMenuBar...
+[WidgetGallery] Creating BTabView...
+[WidgetGallery] Building Tab 1 (Controls & Toggles)...
+[WidgetGallery] Building Tab 2 (Text & Lists)...
+[WidgetGallery] Building Tab 3 (Sliders & Progress)...
+[WidgetGallery] Building Tab 4 (2D Vector Graphics)...
+[WidgetGallery] _InitLayout complete!
+[WidgetGallery] Full-blown Gallery window launched on Haiku GUI (820x620)
+[init] Launching 64-bit Chromium on Haiku GUI...
+[init] Forked chrome with PID 91
+[init] Starting interactive system shell...
+/bin/sh: can't access tty; job control turned off
+/ # [Chromium/OzoneHaiku] Initialized BApplication application/x-vnd.chromium-browser
+[Chromium/OzoneHaiku] Window created: 780x560 at (470, 120)
+[Chromium/OzoneHaiku] Window title: Untitled - Chromium
+[Chromium/OzoneHaiku] Surface presented successfully (frame 1, 780x560).
+[Chromium/OzoneHaiku] Window title: www.yahoo.com - Chromium
+[Chromium/OzoneHaiku] Surface presented successfully (frame 5, 780x560).
+[Chromium/OzoneHaiku] Window title: Yahoo | Mail, Weather, Search, Politics, News, Finance, Sports & Videos - Chromium
+[123:128:1027/125054.365061:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[123:128:1027/125104.226752:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[123:128:1027/125115.867455:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[123:128:1027/125211.534076:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -100
+[123:128:1027/125211.593877:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -100
+[123:128:1027/125218.017623:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[123:128:1027/125218.088889:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -100
+[123:128:1027/125219.042051:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[123:128:1027/125220.768744:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[123:128:1027/125222.809973:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+[123:128:1027/125223.958494:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+[123:128:1027/125229.131405:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+[123:128:1027/125229.525826:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+[123:128:1027/125230.528528:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[123:128:1027/125233.262930:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+[123:128:1027/125235.622832:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+[123:128:1027/125236.174164:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[123:128:1027/125238.374998:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+[123:128:1027/125238.984138:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+[123:128:1027/125242.589213:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+[123:128:1027/125246.124344:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -201
+Warning: Couldn't load Vulkan: libvulkan.so.1: cannot open shared object file: No such file or directory
+    at operator() (../../third_party/dawn/src/dawn/native/vulkan/BackendVk.cpp:321)
+
+[91:91:1027/125318.085017:ERROR:services/on_device_model/public/cpp/service_client.cc:37] Unexpected on_device_model service disconnect; reason: 1, description: Error loading backend.

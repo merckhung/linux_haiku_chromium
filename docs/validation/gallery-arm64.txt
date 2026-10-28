@@ -1,0 +1,71 @@
+
+=================================================================
+=== Linux + Haiku GUI + Chromium Embedded System (64-bit ARM64) ===
+=================================================================
+
+[init] Network eth0 configured: 10.0.2.15/24 gw 10.0.2.2 dns 10.0.2.3
+[init] Kernel command line: console=ttyAMA0 root=/dev/ram0 rw video=Virtual-1:1280x800@60 haiku.mode=gui quiet panic=1
+
+[init] Launching Haiku GUI subsystem...
+[init] Forked app_server with PID 97
+[GlobalFontManager] _AddPath: /boot/system/data/fonts
+could not watch directory 2:2060
+[GlobalFontManager] _AddPath: /boot/system/data/fonts
+[GlobalFontManager] _AddPath: /boot/system
+could not watch directory 2:2055
+[GlobalFontManager] _AddPath: /boot/system
+[GlobalFontManager] _SetDefaultFonts() entered. Directory count: 2
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system'
+could not watch directory 2:2063
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/settings'
+could not watch directory 2:2062
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/servers'
+could not watch directory 2:2061
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/lib'
+could not watch directory 2:2058
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data'
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data/fonts'
+could not watch directory 2:2059
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data/artwork'
+could not watch directory 2:2057
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/bin'
+could not watch directory 2:2056
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/apps'
+[GlobalFontManager] _ScanFontsIfNecessary() done. Family count: 3
+[?25l[?1c[app_server/LinuxFB] Detected /dev/fb0: 1280x800, stride 5120, smem 4096000 bytes
+[Desktop] Init() started for user 0
+app_server: Finding best mode for 1024x768 (8, 60 Hz, strict) failed
+app_server: Finding best mode for 800x600 (8, 60 Hz) failed
+app_server: Use 0x0 (8) instead.
+[Desktop] Virtual screen configured. HWInterface: 0xaaaacdabb010
+[app_server/Evdev] Added input device /dev/input/event2 (gpio-keys)
+[app_server/Evdev] Added input device /dev/input/event1 (QEMU Virtio Keyboard)
+[app_server/Evdev] Added input device /dev/input/event0 (QEMU Virtio Tablet)
+[Desktop] Drawing background...
+[Desktop] Init() finished successfully.
+[app_server] Primary Desktop initialized successfully (port 8)
+[app_server] AppServer constructed with status: 0 (Success)
+[app_server] Entering server->Run()...
+[init] app_server ready after 3900 ms
+[init] Forked Deskbar with PID 104
+[init] Forked Terminal with PID 105
+[init] Launching Haiku GUI Widget Gallery...
+[init] Forked WidgetGallery with PID 111
+[init] Starting interactive system shell...
+/bin/sh: can't access tty; job control turned off
+/ # [WidgetGallery] Initializing Full-Blown Haiku GUI Widget Gallery...
+[WidgetGallery] Initializing HaikuControlLook fallback...
+[WidgetGallery] _InitLayout start
+[WidgetGallery] Creating BMenuBar...
+[WidgetGallery] Creating BTabView...
+[WidgetGallery] Building Tab 1 (Controls & Toggles)...
+[WidgetGallery] Building Tab 2 (Text & Lists)...
+[WidgetGallery] Building Tab 3 (Sliders & Progress)...
+[WidgetGallery] Building Tab 4 (2D Vector Graphics)...
+[WidgetGallery] _InitLayout complete!
+[WidgetGallery] Full-blown Gallery window launched on Haiku GUI (820x620)
+
+Artifact screenshot haiku-widget-gallery-arm64-tab1.png sha256: 53c165dd49fb82b2e4a40a3e239bc05833000ddbe674fa8b7cca90f313831df1
+Artifact screenshot haiku-widget-gallery-arm64-tab2.png sha256: 8d3551e45560a888dd1f0fa8af47aeccea8eb74249d63200237f78a213ad8d06
+Artifact screenshot haiku-widget-gallery-arm64-tab3.png sha256: f47cf2068cf688a6d4a00461ea99f96890b3e3508575724c6bb658e3e8392e6c
+Artifact screenshot haiku-widget-gallery-arm64-tab4.png sha256: 57415c7424e3b68137dbedbf2782eda675af89d59e17d6b5ed81f1188ce43750

@@ -1,0 +1,96 @@
+# SPDX-License-Identifier: MIT
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_binary(
+    name = "deskbar",
+    srcs = [
+        "deskbar_tracker_shim.cpp",
+        "@haiku//:deskbar_sources",
+        "//userland:haiku_compat.h",
+    ],
+    copts = [
+        "-std=c++20",
+        "-O2",
+        "-D_GNU_SOURCE",
+        "-DDB_ADDONS",
+        "-D_INCLUDES_CLASS_DEVICE_MAP=1",
+        "-D_SUPPORTS_RESOURCES=1",
+        "-D_SUPPORTS_FEATURE_SCRIPTING=1",
+        "-D_SHOW_CALENDAR_MENU_WINDOW=1",
+        "-Wno-multichar",
+        "-Wno-address-of-packed-member",
+        "-Wno-deprecated-enum-enum-conversion",
+        "-Wno-deprecated-enum-float-conversion",
+        "-Wno-format",
+        "-Wno-unused-variable",
+        "-Wno-unused-but-set-variable",
+        "-include",
+        "config/types.h",
+        "-include",
+        "userland/haiku_compat.h",
+        "-iquote",
+        "external/+haiku_repository+haiku/src/apps/deskbar",
+    ],
+    linkopts = [
+        "-lpthread",
+        "-lrt",
+        "-Wl,--allow-shlib-undefined",
+    ] + select({
+        "@platforms//cpu:aarch64": [],
+        "//conditions:default": ["-lz"],
+    }),
+    deps = [
+        "//userland/haiku_libbe:haiku_libbe_so",
+        "//userland/haiku_libroot",
+        "@haiku//:headers",
+    ] + select({
+        "@platforms//cpu:aarch64": ["@lhc_zlib//:zlib"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_binary(
+    name = "terminal",
+    srcs = [
+        "terminal_shim.cpp",
+        "@haiku//:terminal_sources",
+        "@haiku//:textencoding_sources",
+        "//userland:haiku_compat.h",
+    ],
+    copts = [
+        "-std=c++20",
+        "-O2",
+        "-D_GNU_SOURCE",
+        "-Wno-multichar",
+        "-Wno-address-of-packed-member",
+        "-Wno-deprecated-enum-enum-conversion",
+        "-Wno-deprecated-enum-float-conversion",
+        "-Wno-format",
+        "-Wno-unused-variable",
+        "-Wno-unused-but-set-variable",
+        "-include",
+        "config/types.h",
+        "-include",
+        "userland/haiku_compat.h",
+        "-iquote",
+        "external/+haiku_repository+haiku/src/apps/terminal",
+    ],
+    linkopts = [
+        "-lpthread",
+        "-lrt",
+        "-Wl,--allow-shlib-undefined",
+    ] + select({
+        "@platforms//cpu:aarch64": [],
+        "//conditions:default": ["-lz"],
+    }),
+    deps = [
+        "//userland/haiku_libbe:haiku_libbe_so",
+        "//userland/haiku_libroot",
+        "@haiku//:headers",
+    ] + select({
+        "@platforms//cpu:aarch64": ["@lhc_zlib//:zlib"],
+        "//conditions:default": [],
+    }),
+)

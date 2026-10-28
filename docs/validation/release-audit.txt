@@ -1,0 +1,2 @@
+PASS: scanned 206 staged files and LFS payloads
+Pattern scans supplement manual review; they do not prove the absence of every possible secret.

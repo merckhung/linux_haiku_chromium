@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: MIT
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "haiku_agg",
+    srcs = ["@haiku//:agg_sources"],
+    copts = [
+        "-std=c++20",
+        "-O2",
+        "-fPIC",
+        "-D_GNU_SOURCE",
+        "-Wno-deprecated-enum-enum-conversion",
+        "-include",
+        "config/types.h",
+    ],
+    deps = [
+        "@haiku//:headers",
+    ],
+)

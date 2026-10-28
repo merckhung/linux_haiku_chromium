@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "build_rootfs.py",
+    "run_desktop.sh",
+    "verify_gui_boot.py",
+    "verify_qemu_boot.py",
+])

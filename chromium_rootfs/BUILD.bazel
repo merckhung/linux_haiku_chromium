@@ -1,0 +1,145 @@
+# SPDX-License-Identifier: MIT
+# Tier 3 rootfs: Haiku GUI desktop + WidgetGallery + pre-built 64-bit Chromium
+# (--ozone-platform=haiku). The Haiku userland is built from source; Chromium is
+# taken from the pre-built binaries in //userland/chromium/prebuilt/<arch>/
+# (see userland/chromium/patches/ to rebuild Chromium yourself).
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load(":chromium_files.bzl", "COMMON_DATA_FILES", "chromium_args", "chromium_srcs")
+
+package(default_visibility = ["//visibility:public"])
+
+# ---------------------------------------------------------------------------
+# x86_64 PC
+# ---------------------------------------------------------------------------
+genrule(
+    name = "image",
+    srcs = [
+        "//scripts:build_rootfs.py",
+        "@haiku//:data/artwork/HAIKU logo - white on transparent - small.png",
+        "@haiku//:data/artwork/HAIKU Background Leaf - outline.png",
+        "//userland/init:init",
+        "//userland/busybox:busybox_bin",
+        "//userland/haiku_libroot:libroot.so",
+        "//userland/haiku_libbe:libbe.so",
+        "//userland/haiku_app_server:app_server",
+        "//userland/haiku_apps:deskbar",
+        "//userland/haiku_apps:terminal",
+        "//userland/widget_gallery:widget_gallery",
+        "//userland/chromium:welcome.html",
+    ] + chromium_srcs("x86_64"),
+    outs = ["initramfs.cpio.gz"],
+    cmd = """
+        python3 $(location //scripts:build_rootfs.py) \\
+            --init="$(location //userland/init:init)" \\
+            --busybox="$(location //userland/busybox:busybox_bin)" \\
+            --apps="boot/system/servers/app_server:$(location //userland/haiku_app_server:app_server)" \\
+            --apps="boot/system/apps/Deskbar:$(location //userland/haiku_apps:deskbar)" \\
+            --apps="boot/system/apps/Terminal:$(location //userland/haiku_apps:terminal)" \\
+            --apps="boot/system/apps/WidgetGallery:$(location //userland/widget_gallery:widget_gallery)" \\
+            """ + chromium_args("x86_64") + """ \\
+""" + COMMON_DATA_FILES + """\
+            --libs="lib/libroot.so:$(location //userland/haiku_libroot:libroot.so)" \\
+            --libs="lib/libbe.so:$(location //userland/haiku_libbe:libbe.so)" \\
+            --libs="lib64/ld-linux-x86-64.so.2:/lib64/ld-linux-x86-64.so.2" \\
+            --libs="lib/libc.so.6:/usr/lib/x86_64-linux-gnu/libc.so.6" \\
+            --libs="lib/libdl.so.2:/usr/lib/x86_64-linux-gnu/libdl.so.2" \\
+            --libs="lib/libpthread.so.0:/usr/lib/x86_64-linux-gnu/libpthread.so.0" \\
+            --libs="lib/librt.so.1:/usr/lib/x86_64-linux-gnu/librt.so.1" \\
+            --libs="lib/libexpat.so.1:/usr/lib/x86_64-linux-gnu/libexpat.so.1" \\
+            --libs="lib/libm.so.6:/usr/lib/x86_64-linux-gnu/libm.so.6" \\
+            --libs="lib/libstdc++.so.6:/usr/lib/x86_64-linux-gnu/libstdc++.so.6" \\
+            --libs="lib/libgcc_s.so.1:/usr/lib/x86_64-linux-gnu/libgcc_s.so.1" \\
+            --libs="lib/libz.so.1:/usr/lib/x86_64-linux-gnu/libz.so.1" \\
+            --libs="lib/libfreetype.so.6:/usr/lib/x86_64-linux-gnu/libfreetype.so.6" \\
+            --libs="lib/libbz2.so.1.0:/usr/lib/x86_64-linux-gnu/libbz2.so.1.0" \\
+            --libs="lib/libpng16.so.16:/usr/lib/x86_64-linux-gnu/libpng16.so.16" \\
+            --libs="lib/libbrotlidec.so.1:/usr/lib/x86_64-linux-gnu/libbrotlidec.so.1" \\
+            --libs="lib/libbrotlicommon.so.1:/usr/lib/x86_64-linux-gnu/libbrotlicommon.so.1" \\
+            --libs="lib/libresolv.so.2:/usr/lib/x86_64-linux-gnu/libresolv.so.2" \\
+            --libs="lib/libnss_dns.so.2:/usr/lib/x86_64-linux-gnu/libnss_dns.so.2" \\
+            --libs="lib/libnss_files.so.2:/usr/lib/x86_64-linux-gnu/libnss_files.so.2" \\
+            --out="$@"
+    """,
+    local = 1,
+)
+
+sh_binary(
+    name = "verify",
+    srcs = ["run_verify.sh"],
+    args = [
+        "$(location //kernel:bzImage)",
+        "$(location :image)",
+        "$(location //scripts:verify_gui_boot.py)",
+    ],
+    data = [
+        ":image",
+        "//kernel:bzImage",
+        "//scripts:verify_gui_boot.py",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# ARM64 (Raspberry Pi 4B / QEMU virt). Haiku userland cross-compiled from
+# source via //userland/arm64 (aarch64-linux-gnu toolchain).
+# ---------------------------------------------------------------------------
+genrule(
+    name = "image_arm64",
+    srcs = [
+        "//scripts:build_rootfs.py",
+        "@haiku//:data/artwork/HAIKU logo - white on transparent - small.png",
+        "@haiku//:data/artwork/HAIKU Background Leaf - outline.png",
+        "//userland/arm64:init",
+        "//userland/arm64:busybox",
+        "//userland/arm64:libroot.so",
+        "//userland/arm64:libbe.so",
+        "//userland/arm64:libexpat.so.1",
+        "//userland/arm64:app_server",
+        "//userland/arm64:deskbar",
+        "//userland/arm64:terminal",
+        "//userland/arm64:widget_gallery",
+        "//userland/chromium:welcome.html",
+    ] + chromium_srcs("arm64"),
+    outs = ["initramfs_arm64.cpio.gz"],
+    cmd = """
+        python3 $(location //scripts:build_rootfs.py) \\
+            --init="$(location //userland/arm64:init)" \\
+            --busybox="$(location //userland/arm64:busybox)" \\
+            --apps="boot/system/servers/app_server:$(location //userland/arm64:app_server)" \\
+            --apps="boot/system/apps/Deskbar:$(location //userland/arm64:deskbar)" \\
+            --apps="boot/system/apps/Terminal:$(location //userland/arm64:terminal)" \\
+            --apps="boot/system/apps/WidgetGallery:$(location //userland/arm64:widget_gallery)" \\
+            """ + chromium_args("arm64") + """ \\
+""" + COMMON_DATA_FILES + """\
+            --libs="lib/libroot.so:$(location //userland/arm64:libroot.so)" \\
+            --libs="lib/libbe.so:$(location //userland/arm64:libbe.so)" \\
+            --libs="lib/libexpat.so.1:$(location //userland/arm64:libexpat.so.1)" \\
+            --libs="lib/ld-linux-aarch64.so.1:/usr/aarch64-linux-gnu/lib/ld-linux-aarch64.so.1" \\
+            --libs="lib/libc.so.6:/usr/aarch64-linux-gnu/lib/libc.so.6" \\
+            --libs="lib/libm.so.6:/usr/aarch64-linux-gnu/lib/libm.so.6" \\
+            --libs="lib/libstdc++.so.6:/usr/aarch64-linux-gnu/lib/libstdc++.so.6" \\
+            --libs="lib/libgcc_s.so.1:/usr/aarch64-linux-gnu/lib/libgcc_s.so.1" \\
+            --libs="lib/libdl.so.2:/usr/aarch64-linux-gnu/lib/libdl.so.2" \\
+            --libs="lib/libpthread.so.0:/usr/aarch64-linux-gnu/lib/libpthread.so.0" \\
+            --libs="lib/librt.so.1:/usr/aarch64-linux-gnu/lib/librt.so.1" \\
+            --libs="lib/libresolv.so.2:/usr/aarch64-linux-gnu/lib/libresolv.so.2" \\
+            --libs="lib/libnss_dns.so.2:/usr/aarch64-linux-gnu/lib/libnss_dns.so.2" \\
+            --libs="lib/libnss_files.so.2:/usr/aarch64-linux-gnu/lib/libnss_files.so.2" \\
+            --out="$@"
+    """,
+    local = 1,
+)
+
+sh_binary(
+    name = "verify_arm64",
+    srcs = ["run_verify_arm64.sh"],
+    args = [
+        "$(location //kernel:Image)",
+        "$(location :image_arm64)",
+        "$(location //scripts:verify_gui_boot.py)",
+    ],
+    data = [
+        ":image_arm64",
+        "//kernel:Image",
+        "//scripts:verify_gui_boot.py",
+    ],
+)

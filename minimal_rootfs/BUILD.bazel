@@ -1,0 +1,81 @@
+# SPDX-License-Identifier: MIT
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+genrule(
+    name = "image",
+    srcs = [
+        "//scripts:build_rootfs.py",
+        "//userland/init:init",
+        "//userland/busybox:busybox_bin",
+        "//userland/haiku_libroot:haiku_libroot_test_bin",
+        "//userland/haiku_libroot:libroot.so",
+    ],
+    outs = [
+        "initramfs.cpio.gz",
+    ],
+    cmd = """
+        python3 $(location //scripts:build_rootfs.py) \
+            --init="$(location //userland/init:init)" \
+            --busybox="$(location //userland/busybox:busybox_bin)" \
+            --tests="bin/haiku_libroot_test:$(location //userland/haiku_libroot:haiku_libroot_test_bin)" \
+            --libs="lib/libroot.so:$(location //userland/haiku_libroot:libroot.so)" \
+            --out="$@"
+    """,
+    local = 1,
+)
+
+sh_binary(
+    name = "verify",
+    srcs = ["run_verify.sh"],
+    data = [
+        ":image",
+        "//kernel:bzImage",
+        "//scripts:verify_qemu_boot.py",
+    ],
+    args = [
+        "$(location //kernel:bzImage)",
+        "$(location :image)",
+        "$(location //scripts:verify_qemu_boot.py)",
+    ],
+)
+
+# ARM64: same Tier 1 suite, cross-compiled from source (//userland/arm64).
+genrule(
+    name = "image_arm64",
+    srcs = [
+        "//scripts:build_rootfs.py",
+        "//userland/arm64:init",
+        "//userland/arm64:busybox",
+        "//userland/arm64:haiku_libroot_test",
+        "//userland/arm64:libroot.so",
+    ],
+    outs = [
+        "initramfs_arm64.cpio.gz",
+    ],
+    cmd = """
+        python3 $(location //scripts:build_rootfs.py) \\
+            --init="$(location //userland/arm64:init)" \\
+            --busybox="$(location //userland/arm64:busybox)" \\
+            --tests="bin/haiku_libroot_test:$(location //userland/arm64:haiku_libroot_test)" \\
+            --libs="lib/libroot.so:$(location //userland/arm64:libroot.so)" \\
+            --out="$@"
+    """,
+    local = 1,
+)
+
+sh_binary(
+    name = "verify_arm64",
+    srcs = ["run_verify_arm64.sh"],
+    data = [
+        ":image_arm64",
+        "//kernel:Image",
+        "//scripts:verify_qemu_boot.py",
+    ],
+    args = [
+        "$(location //kernel:Image)",
+        "$(location :image_arm64)",
+        "$(location //scripts:verify_qemu_boot.py)",
+    ],
+)

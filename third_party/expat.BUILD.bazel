@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: MIT
+# Bazel build for Expat 2.6.4 (MIT). Chromium links libexpat.so.1 dynamically,
+# so the ARM64 rootfs ships this source-built shared library. Uses the
+# expat_config.h shipped in the release tarball (glibc/Linux, little-endian).
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
+
+cc_library(
+    name = "expat_lib",
+    srcs = [
+        "lib/ascii.h",
+        "lib/asciitab.h",
+        "lib/iasciitab.h",
+        "lib/internal.h",
+        "lib/latin1tab.h",
+        "lib/nametab.h",
+        "lib/siphash.h",
+        "lib/utf8tab.h",
+        "lib/xmlparse.c",
+        "lib/xmlrole.c",
+        "lib/xmlrole.h",
+        "lib/xmltok.c",
+        "lib/xmltok.h",
+        "lib/xmltok_impl.h",
+        "expat_config.h",
+    ],
+    hdrs = [
+        "lib/expat.h",
+        "lib/expat_external.h",
+    ],
+    textual_hdrs = [
+        "lib/xmltok_impl.c",
+        "lib/xmltok_ns.c",
+    ],
+    copts = [
+        "-O2",
+        "-fPIC",
+        "-DHAVE_EXPAT_CONFIG_H",
+        "-fvisibility=default",
+        "-Iexternal/+release_repository+lhc_expat",
+        "-w",
+    ],
+    includes = ["lib"],
+    alwayslink = True,
+)
+
+cc_binary(
+    name = "libexpat.so.1",
+    linkopts = ["-Wl,-soname,libexpat.so.1"],
+    linkshared = True,
+    deps = [":expat_lib"],
+)

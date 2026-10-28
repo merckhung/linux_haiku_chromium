@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: MIT
+# ARM64 (aarch64) builds of the Haiku userland, cross-compiled FROM SOURCE with
+# the aarch64-linux-gnu toolchain registered in //bazel/toolchains.
+# Each target transitions its dependency to //bazel/platforms:linux_arm64, so a
+# plain `bazel build //userland/arm64:all` works on an x86_64 host.
+load("//bazel:arm64.bzl", "arm64_files")
+
+package(default_visibility = ["//visibility:public"])
+
+arm64_files(
+    name = "init",
+    srcs = ["//userland/init:init"],
+)
+
+arm64_files(
+    name = "libroot.so",
+    srcs = ["//userland/haiku_libroot:libroot.so"],
+)
+
+arm64_files(
+    name = "libbe.so",
+    srcs = ["//userland/haiku_libbe:libbe.so"],
+)
+
+arm64_files(
+    name = "app_server",
+    srcs = ["//userland/haiku_app_server:app_server"],
+)
+
+arm64_files(
+    name = "deskbar",
+    srcs = ["//userland/haiku_apps:deskbar"],
+)
+
+arm64_files(
+    name = "terminal",
+    srcs = ["//userland/haiku_apps:terminal"],
+)
+
+arm64_files(
+    name = "widget_gallery",
+    srcs = ["//userland/widget_gallery:widget_gallery"],
+)
+
+alias(
+    name = "busybox",
+    actual = "//userland/busybox:busybox_arm64",
+)
+
+arm64_files(
+    name = "libexpat.so.1",
+    srcs = ["@lhc_expat//:libexpat.so.1"],
+)
+
+arm64_files(
+    name = "haiku_libroot_test",
+    srcs = ["//userland/haiku_libroot:haiku_libroot_test_bin"],
+)

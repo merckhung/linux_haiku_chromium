@@ -1,0 +1,87 @@
+Computing main repo mapping:
+Loading:
+Loading: 0 packages loaded
+Analyzing: target //minimal_rootfs:verify_arm64 (0 packages loaded, 0 targets configured)
+Analyzing: target //minimal_rootfs:verify_arm64 (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //minimal_rootfs:verify_arm64 (0 packages loaded, 2 targets configured).
+INFO: Found 1 target...
+Target //minimal_rootfs:verify_arm64 up-to-date:
+  bazel-bin/minimal_rootfs/verify_arm64
+INFO: Elapsed time: 0.906s, Critical Path: 0.00s
+INFO: 6 processes: 6 internal.
+INFO: Build completed successfully, 6 total actions
+INFO: Running command line: bazel-bin/minimal_rootfs/verify_arm64 kernel/Image minimal_rootfs/initramfs_arm64.cpio.gz scripts/verify_qemu_boot.py
+Verification started UTC: 2026-10-26T23:40:25.238323+00:00
+Artifact kernel sha256: 6b024548f5ced5ca60f3bbded8f0f216561dc3b5adc604b3456fa0283c605b81
+Artifact initrd sha256: d828f6afe8b4c5c71dcaff36d0ec4b9343ddc29a95c0c34355a5d5f7b51ff962
+[*] Launching QEMU: qemu-system-aarch64 -M virt -cpu cortex-a72 -kernel <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/minimal_rootfs/verify_arm64.runfiles/_main/kernel/Image -initrd <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/minimal_rootfs/verify_arm64.runfiles/_main/minimal_rootfs/initramfs_arm64.cpio.gz -m 1024M -smp 2 -nographic -serial mon:stdio -append console=ttyAMA0 haiku.mode=tier1 quiet panic=1 -no-reboot
+
+[serial] =================================================================
+=== Linux + Haiku GUI + Chromium Embedded System (64-bit ARM64) ===
+[serial] =================================================================
+
+[init] Network eth0 configured: 10.0.2.15/24 gw 10.0.2.2 dns 10.0.2.3
+[init] Kernel command line: console=ttyAMA0 haiku.mode=tier1 quiet panic=1
+
+[init] Executing Haiku libroot verification suite...
+[serial] =========================================
+=== Haiku-on-Linux libroot Test Suite ===
+[serial] =========================================
+[TEST] system_info...
+       cpu0 active_time=2020000 us matches live /proc/stat bounds (2020000..2020000)
+       cpu_count=2, max_pages=247655, system_time=3448771 us: PASS
+[TEST] areas...
+       create_area, clone_area, shared memory mutation, delete_area: PASS
+[TEST] ports...
+       create_port, find_port, write_port, read_port, timeout: PASS
+[TEST] semaphores...
+       create_sem, acquire_sem, timeout, release_sem: PASS
+[TEST] threads...
+       contended readers/writers, recursive writer, single initialization: PASS
+       spawn_thread, suspended start, resume_thread, send/receive_data, wait_for_thread: PASS
+[TEST] find_directory...
+       find_directory B_SYSTEM_DIRECTORY, B_SYSTEM_FONTS_DIRECTORY: PASS
+[serial] =========================================
+=== ALL 6 HAIKU LIBROOT SUITES PASSED ===
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =====
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =============
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =======
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] ======
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] =======
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[serial] ===
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[init] haiku_li
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+broot_test exited with code: 0
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+[init] [PA
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+SS] Tier 1 verificat
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+ion pass
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+ed!
+[+] Verified milestone: '=== ALL 6 HAIKU LIBROOT SUITES PASSED ==='
+
+[+] Verified milestone: '[PASS] Tier 1 verification passed!'
+
+[+] All required verification milestones observed!
+
+[*] Execution finished in 4.87 seconds.
+[+] QEMU headless verification SUCCESSFUL.

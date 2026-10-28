@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!-- SPDX-License-Identifier: MIT -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chromium on Haiku GUI (64-bit Linux)</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px 28px;
+      font-family: "DejaVu Sans", sans-serif;
+      background-color: #f6f8fa;
+      color: #1f2328;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, #1b4f82 0%, #2a6db0 100%);
+      color: #ffffff;
+      padding: 16px 22px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .header .badge {
+      background-color: #ffcc00;
+      color: #1f2328;
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 14px 16px;
+    }
+    .card h2 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: #1b4f82;
+      border-bottom: 1px solid #eaeef2;
+      padding-bottom: 6px;
+    }
+    .card ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .status-bar {
+      background: #dafbe1;
+      border: 1px solid #4ac26b;
+      color: #116329;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: "DejaVu Sans Mono", monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Chromium Browser on Haiku OS GUI</h1>
+      <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">
+        64-bit Linux Kernel + Haiku app_server + Ozone/Haiku Platform (BWindow / BView)
+      </div>
+    </div>
+    <div class="badge">OZONE-HAIKU x86_64</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>System Architecture</h2>
+      <ul>
+        <li><b>Kernel:</b> Linux 6.6 LTS (x86_64)</li>
+        <li><b>Display Server:</b> Haiku <code>app_server</code> (/dev/fb0)</li>
+        <li><b>Desktop Shell:</b> Haiku <code>Deskbar</code> &amp; <code>Terminal</code></li>
+        <li><b>Toolkit Bridge:</b> <code>libbe.so</code> + <code>libroot.so</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Chromium Runtime</h2>
+      <ul>
+        <li><b>Ozone Platform:</b> <code>OzonePlatformHaiku</code></li>
+        <li><b>Windowing:</b> Native Haiku <code>BWindow</code> / <code>BView</code></li>
+        <li><b>Engine:</b> Blink HTML5 + V8 JavaScript</li>
+        <li><b>Viewport:</b> <span id="vp">initializing...</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="status-bar" id="js-status">
+    Initializing V8 JavaScript Engine...
+  </div>
+
+  <script>
+    (function() {
+      var vp = document.getElementById('vp');
+      if (vp) {
+        vp.textContent = window.innerWidth + 'x' + window.innerHeight + ' px';
+      }
+      var st = document.getElementById('js-status');
+      if (st) {
+        st.textContent = '[PASS] V8 & Blink active | UA: ' + navigator.userAgent.slice(0, 68);
+      }
+    })();
+  </script>
+</body>
+</html>

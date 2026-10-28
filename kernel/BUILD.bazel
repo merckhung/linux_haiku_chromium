@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: MIT
+load("@linux_kernel//:source_path.bzl", "KERNEL_SOURCE_PATH")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "x86_64_defconfig",
+    "arm64_defconfig",
+    "build_kernel.py",
+])
+
+genrule(
+    name = "bzImage",
+    srcs = [
+        "x86_64_defconfig",
+        "build_kernel.py",
+    ],
+    outs = ["bzImage"],
+    cmd = """
+        python3 $(location build_kernel.py) \
+            --arch=x86_64 \
+            --kernel_src="%s" \
+            --defconfig="$(location x86_64_defconfig)" \
+            --out="$@" \
+            --jobs=16
+    """ % KERNEL_SOURCE_PATH,
+    local = 1,
+)
+
+genrule(
+    name = "Image",
+    srcs = [
+        "arm64_defconfig",
+        "build_kernel.py",
+    ],
+    outs = ["Image"],
+    cmd = """
+        python3 $(location build_kernel.py) \
+            --arch=arm64 \
+            --kernel_src="%s" \
+            --defconfig="$(location arm64_defconfig)" \
+            --out="$@" \
+            --jobs=16
+    """ % KERNEL_SOURCE_PATH,
+    local = 1,
+)

@@ -1,0 +1,4 @@
+The FFmpeg source archive retains its original per-file licensing. Its
+COPYING.*, LICENSE.md and CREDITS.chromium files describe LGPL, GPL and
+permissive components. No uniform project MIT license is granted over this
+archive. Source revision and origin are recorded in THIRD_PARTY_NOTICES.md.

@@ -1,0 +1,160 @@
+Computing main repo mapping:
+Loading:
+Loading: 0 packages loaded
+Analyzing: target //chromium_rootfs:verify (0 packages loaded, 0 targets configured)
+Analyzing: target //chromium_rootfs:verify (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //chromium_rootfs:verify (1 packages loaded, 67 targets configured).
+INFO: Found 1 target...
+Target //chromium_rootfs:verify up-to-date:
+  bazel-bin/chromium_rootfs/verify
+INFO: Elapsed time: 2.257s, Critical Path: 0.50s
+INFO: 2 processes: 465 action cache hit, 2 internal.
+INFO: Build completed successfully, 2 total actions
+INFO: Running command line: bazel-bin/chromium_rootfs/verify kernel/bzImage chromium_rootfs/initramfs.cpio.gz scripts/verify_gui_boot.py
+Verification started UTC: 2026-10-27T12:49:19.365008+00:00
+Artifact kernel sha256: c0709e515d15624513704ba984d79db9dd6c2a46bf5ca1b9faff7bda5b7a8b59
+Artifact initrd sha256: a249d373f04663a79ab9941e2df635f4e4065584c9b29238967abf86e5844041
+[*] Launching QEMU GUI verification: qemu-system-x86_64 -kernel <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/chromium_rootfs/verify.runfiles/_main/kernel/bzImage -initrd <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/chromium_rootfs/verify.runfiles/_main/chromium_rootfs/initramfs.cpio.gz -m 8192M -smp 4 -vga std -device virtio-tablet-pci -netdev user,id=net0 -device virtio-net-pci,netdev=net0 -display none -serial mon:stdio -qmp unix:<qmp-socket>,server,nowait -append console=ttyS0 haiku.mode=chromium quiet panic=1 -no-reboot -enable-kvm -cpu host
+
+[serial] =================================================================
+=== Linux + Haiku GUI + Chromium Embedded System (64-bit x86_64) ===
+[serial] =================================================================
+
+[init] Network eth0 configured: 10.0.2.15/24 gw 10.0.2.2 dns 10.0.2.3
+[init] Kernel command line: console=ttyS0 haiku.mode=chromium quiet panic=1
+
+[init] Launching Haiku GUI subsystem...
+[+] Verified milestone: '[init] Launching Haiku GUI subsystem...'
+
+[init] Forked app_server with PID 59
+[GlobalFontManager] _AddPath: /boot/system/data/fonts
+could not watch directory 2:14
+[GlobalFontManager] _AddPath: /boot/system/data/fonts
+[GlobalFontManager] _AddPath: /boot/system
+could not watch directory 2:9
+[GlobalFontManager] _AddPath: /boot/system
+[GlobalFontManager] _SetDefaultFonts() entered. Directory count: 2
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system'
+could not watch directory 2:17
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/settings'
+could not watch directory 2:16
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/servers'
+could not watch directory 2:15
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/lib'
+could not watch directory 2:12
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data'
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data/fonts'
+could not watch directory 2:13
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data/artwork'
+could not watch directory 2:11
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/bin'
+could not watch directory 2:10
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/apps'
+could not watch directory 2:126
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/apps/locales'
+[GlobalFontManager] _ScanFontsIfNecessary() done. Family count: 3
+[app_server/LinuxFB] Detected /dev/fb0: 1280x800, stride 5120, smem 4096000 bytes
+[Desktop] Init() started for user 0
+app_server: Finding best mode for 1024x768 (8, 60 Hz, strict) failed
+app_server: Finding best mode for 800x600 (8, 60 Hz) failed
+app_server: Use 0x0 (8) instead.
+[Desktop] Virtual screen configured. HWInterface: 0x5643c2468e60
+[app_server/Evdev] Added input device /dev/input/event3 (ImExPS/2 Generic Explorer Mouse)
+[app_server/Evdev] Added input device /dev/input/event2 (AT Translated Set 2 keyboard)
+[app_server/Evdev] Added input device /dev/input/event1 (QEMU Virtio Tablet)
+[app_server/Evdev] Added input device /dev/input/event0 (Power Button)
+[Desktop] Drawing background...
+[Desktop] Init() finished successfully.
+[app_server] Primary Desktop initialized successfully (port 8)
+[app_server] AppServer constructed with status: 0 (Success)
+[app_server] Entering server->Run()...
+[init] app_server ready after 100 ms
+[init] Launching Haiku Deskbar (Taskbar)...
+[+] Verified milestone: '[init] Launching Haiku Deskbar (Taskbar)...'
+
+[init] Forked Deskbar with PID 66
+[init] Launching Haiku Terminal...
+[init] Forked Terminal with PID 77
+[init] Launching Haiku GUI Widget Gallery...
+[+] Verified milestone: '[init] Launching Haiku GUI Widget Gallery...'
+
+[init] Forked WidgetGallery with PID 86
+[WidgetGallery] Initializing Full-Blown Haiku GUI Widget Gallery...
+[WidgetGallery] Initializing HaikuControlLook fallback...
+[WidgetGallery] _InitLayout start
+[WidgetGallery] Creating BMenuBar...
+[WidgetGallery] Creating BTabView...
+[WidgetGallery] Building Tab 1 (Controls & Toggles)...
+[WidgetGallery] Building Tab 2 (Text & Lists)...
+[WidgetGallery] Building Tab 3 (Sliders & Progress)...
+[WidgetGallery] Building Tab 4 (2D Vector Graphics)...
+[WidgetGallery] _InitLayout complete!
+[WidgetGallery] Full-blown Gallery window launched on Haiku GUI (820x620)
+[init] Launching 64-bit Chromium on Haiku GUI...
+[+] Verified milestone: '[init] Launching 64-bit Chromium on Haiku GUI...'
+
+[init] Forked chrome with PID 90
+[init] Starting interactive system shell...
+/bin/sh: can't access tty; job control turned off
+/ # [Chromium/OzoneHaiku] Initialized BApplication
+[+] Verified milestone: '[Chromium/OzoneHaiku] Initialized BApplication'
+application/x-vnd.chromium-browser
+[Chromium/OzoneHaiku] Window created: 780
+[+] Verified milestone: '[Chromium/OzoneHaiku] Window created:'
+
+[*] Waiting up to 180s for marker: '[Chromium/OzoneHaiku] Window title: Yahoo'
+x560 at (470, 120)
+[Chromium/OzoneHaiku] Window title: Untitled - Chromium
+[Chromium/OzoneHaiku] Surface presented successfully (frame 1, 780x560).
+[Chromium/OzoneHaiku] Surface presented successfully (frame 5, 780x560).
+[Chromium/OzoneHaiku] Window title: Yahoo
+[+] Verified marker: '[Chromium/OzoneHaiku] Window title: Yahoo' (4.7s after QEMU start)
+
+[*] Waiting 5.0s for app_server and window decor rendering...
+| Mail, Weather, Search, Politics, News, Finance, Sports & Videos - Chromium
+[*] Connecting to QMP socket <qmp-socket>...
+[*] Bringing Terminal to front (click its window tab) and typing commands via QMP...
+[124:130:1027/124933.481742:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[124:130:1027/124934.182373:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -200
+[124:130:1027/124935.516668:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+for attempt in 1 2 3 4 5 6 7 8 9 10; do if test -f /run/gui-input-ff28929d78
+
+532e6eddced309; then printf '\nGUI_INPUT_PROOF_ff28929d78532e6eddced309\n'; brea
+
+k; fi; sleep 1; done
+
+GUI_INPUT_PROOF_ff28929d78532e6eddced309
+[+] Verified GUI keyboard input through Terminal and independent serial file check.
+[*] Dumping Terminal proof framebuffer via QMP to <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/chromium_rootfs/verify.runfiles/_main/docs/screenshots/haiku-terminal-proof-x86_64.ppm...
+[+] Terminal proof captured: 1280x800, 30806 unique colors
+[+] Converted <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/chromium_rootfs/verify.runfiles/_main/docs/screenshots/haiku-terminal-proof-x86_64.ppm -> <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/chromium_rootfs/verify.runfiles/_main/docs/screenshots/haiku-terminal-proof-x86_64.png (185100 bytes)
+Artifact screenshot haiku-terminal-proof-x86_64.png sha256: 98d2b8f3cc2a3bd13cd350236c78b0fbe4a685bc528e75364723d1e445e64e59
+[*] Sending mouse wheel down/up via QMP...
+[*] Dumping framebuffer via QMP to <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/chromium_rootfs/verify.runfiles/_main/docs/screenshots/haiku-chromium-x86_64.ppm...
+[*] Content region (640, 280, 1230, 670): 106101 distinct colours (need >= 2000)
+[+] Verified rendered page content.
+[+] Framebuffer captured: 1280x800, 131013 unique colors (3072016 bytes)
+[+] Pixel diversity verified: 131013 distinct colors rendered on screen.
+[+] Converted <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/chromium_rootfs/verify.runfiles/_main/docs/screenshots/haiku-chromium-x86_64.ppm -> <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/chromium_rootfs/verify.runfiles/_main/docs/screenshots/haiku-chromium-x86_64.png (669861 bytes)
+Artifact screenshot haiku-chromium-x86_64.png sha256: f6a1e0eb4718d103f556e77acdbb07151a5130021e4191da56da1b9e913d7dd0
+[*] Navigating Chromium to fresh input probe http://10.0.2.2:42819/bf8fb8e04e805f71c4ffad8b/
+[*] Chromium input probe page served.
+/ # [124:130:1027/124940.247493:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[124:130:1027/124940.307784:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -100
+[Chromium/OzoneHaiku] Window created: 126x24 at (1149, 196)
+[Chromium/OzoneHaiku] Tooltip configured without focus
+[124:130:1027/124946.012343:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[Chromium/OzoneHaiku] Window title: Haiku browser input verification - Chromium
+[124:130:1027/124948.496040:ERROR:net/socket/ssl_client_socket_impl.cc:949] handshake failed; returned -1, SSL error code 1, net_error -101
+[+] Chromium DOM callback: ready
+[+] Chromium DOM callback: click
+[+] Chromium DOM callback: key
+[+] Chromium DOM callback: wheel-down
+[+] Chromium DOM callback: scrolled
+[+] Chromium DOM callback: wheel-up
+[+] Chromium DOM callback: top
+[*] Captured DOM input proof framebuffer: <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/chromium_rootfs/verify.runfiles/_main/docs/screenshots/haiku-chromium-x86_64.ppm.probe-bf8fb8e04e805f71c4ffad8b-success.ppm
+[+] Verified Chromium DOM input: key, click, wheel-down/up and scrolling (HTTP nonce bf8fb8e04e805f71c4ffad8b)
+[*] Execution finished in 32.19 seconds.
+[+] Tier 3 Haiku GUI + Chromium QEMU verification SUCCESSFUL.

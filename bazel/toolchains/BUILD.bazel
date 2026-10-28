@@ -1,0 +1,94 @@
+# SPDX-License-Identifier: MIT
+# GCC cross toolchain targeting aarch64-linux-gnu (Debian `g++-aarch64-linux-gnu`).
+# Used to build the ARM64 (Raspberry Pi 4B / QEMU virt) Haiku userland from source.
+load("@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl", "cc_toolchain_config")
+load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(name = "empty")
+
+cc_toolchain_config(
+    name = "aarch64_linux_gnu_config",
+    abi_libc_version = "glibc",
+    abi_version = "gcc",
+    compile_flags = [
+        "-fstack-protector",
+        "-Wall",
+        "-fno-omit-frame-pointer",
+    ],
+    compiler = "gcc",
+    cpu = "aarch64",
+    cxx_builtin_include_directories = [
+        "/usr/aarch64-linux-gnu/include",
+        "/usr/lib/gcc-cross/aarch64-linux-gnu",
+        "/usr/include",
+    ],
+    cxx_flags = ["-std=c++17"],
+    dbg_compile_flags = ["-g"],
+    host_system_name = "x86_64-unknown-linux-gnu",
+    link_flags = [
+        "-Wl,-no-as-needed",
+        "-Wl,-z,relro,-z,now",
+        "-pass-exit-codes",
+    ],
+    link_libs = [
+        "-Wl,--push-state,-as-needed",
+        "-lstdc++",
+        "-Wl,--pop-state",
+        "-Wl,--push-state,-as-needed",
+        "-lm",
+        "-Wl,--pop-state",
+    ],
+    opt_compile_flags = [
+        "-g0",
+        "-O2",
+        "-DNDEBUG",
+        "-ffunction-sections",
+        "-fdata-sections",
+    ],
+    target_libc = "glibc",
+    target_system_name = "aarch64-linux-gnu",
+    tool_paths = {
+        "ar": "/usr/bin/aarch64-linux-gnu-ar",
+        "cpp": "/usr/bin/aarch64-linux-gnu-cpp",
+        "dwp": "/usr/bin/aarch64-linux-gnu-dwp",
+        "gcc": "/usr/bin/aarch64-linux-gnu-gcc",
+        "gcov": "/usr/bin/aarch64-linux-gnu-gcov",
+        "ld": "/usr/bin/aarch64-linux-gnu-ld",
+        "nm": "/usr/bin/aarch64-linux-gnu-nm",
+        "objcopy": "/usr/bin/aarch64-linux-gnu-objcopy",
+        "objdump": "/usr/bin/aarch64-linux-gnu-objdump",
+        "strip": "/usr/bin/aarch64-linux-gnu-strip",
+    },
+    toolchain_identifier = "aarch64-linux-gnu",
+)
+
+cc_toolchain(
+    name = "aarch64_linux_gnu_cc_toolchain",
+    all_files = ":empty",
+    ar_files = ":empty",
+    as_files = ":empty",
+    compiler_files = ":empty",
+    dwp_files = ":empty",
+    linker_files = ":empty",
+    objcopy_files = ":empty",
+    strip_files = ":empty",
+    supports_param_files = 1,
+    toolchain_config = ":aarch64_linux_gnu_config",
+    toolchain_identifier = "aarch64-linux-gnu",
+)
+
+toolchain(
+    name = "aarch64_linux_gnu_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+    toolchain = ":aarch64_linux_gnu_cc_toolchain",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)

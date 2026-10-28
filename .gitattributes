@@ -1,0 +1,7 @@
+userland/chromium/prebuilt/*/chrome filter=lfs diff=lfs merge=lfs -text
+*.png binary
+*.tar.gz binary
+# Preserve upstream notice text, including its original whitespace.
+licenses/chromium/NOTICE.txt -whitespace
+licenses/chromium/about_credits.html -whitespace
+licenses/system/*.copyright -whitespace

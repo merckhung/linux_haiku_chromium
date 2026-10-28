@@ -1,0 +1,32 @@
+version = 1
+
+# Original project infrastructure. Upstream source keeps its own file headers.
+[[annotations]]
+path = ["BUILD.bazel", "MODULE.bazel*", ".bazelrc", ".gitignore", ".gitattributes", "README.md", "THIRD_PARTY_NOTICES.md", "docs/*.md", "bazel/**", "scripts/**", "rootfs/**", "minimal_rootfs/**", "chromium_rootfs/**", "kernel/BUILD.bazel", "kernel/build_kernel.py", "userland/**/BUILD.bazel", "third_party/*.BUILD.bazel"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 linux_haiku_chromium contributors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["kernel/*_defconfig"]
+precedence = "closest"
+SPDX-FileCopyrightText = "Linux kernel contributors and linux_haiku_chromium contributors"
+SPDX-License-Identifier = "GPL-2.0-only"
+
+[[annotations]]
+path = ["userland/chromium/prebuilt/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "The Chromium Authors and respective bundled component authors"
+SPDX-License-Identifier = "LicenseRef-Chromium-Bundle"
+
+[[annotations]]
+path = ["licenses/chromium/about_credits.html"]
+precedence = "closest"
+SPDX-FileCopyrightText = "The Chromium Authors and respective bundled component authors"
+SPDX-License-Identifier = "LicenseRef-Chromium-Bundle"
+
+[[annotations]]
+path = ["third_party/sources/ffmpeg-*.tar.gz"]
+precedence = "closest"
+SPDX-FileCopyrightText = "FFmpeg contributors and respective per-file copyright holders"
+SPDX-License-Identifier = "LicenseRef-FFmpeg-Source"

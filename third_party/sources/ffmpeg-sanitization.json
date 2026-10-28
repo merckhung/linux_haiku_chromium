@@ -1,0 +1,51 @@
+{
+  "source_revision": "42a2a7a2b2ceb0b1554af1e99a8cdaae189404bb",
+  "upstream_archive_sha256": "474d709e3fc2505855199ad5cfe6374f1f11200305cb92be5a9f41c1cee70bda",
+  "sanitized_archive_sha256": "2a99b3793793931cae21eecbce8d8118450faf9f26bb7a51a0c669c8c34911d5",
+  "change": "Workstation paths replaced only in commented FFMPEG_CONFIGURATION lines; no executable source changed. Archive ownership and timestamps normalized.",
+  "modified_files": [
+    "chromium/config/Chrome/android/arm-neon/config.h",
+    "chromium/config/Chrome/android/arm64/config.h",
+    "chromium/config/Chrome/android/ia32/config.h",
+    "chromium/config/Chrome/android/x64/config.h",
+    "chromium/config/Chrome/ios/arm64/config.h",
+    "chromium/config/Chrome/ios/x64/config.h",
+    "chromium/config/Chrome/linux-noasm/x64/config.h",
+    "chromium/config/Chrome/linux/arm-neon/config.h",
+    "chromium/config/Chrome/linux/arm/config.h",
+    "chromium/config/Chrome/linux/arm64/config.h",
+    "chromium/config/Chrome/linux/ia32/config.h",
+    "chromium/config/Chrome/linux/riscv64/config.h",
+    "chromium/config/Chrome/linux/x64/config.h",
+    "chromium/config/Chrome/mac/arm64/config.h",
+    "chromium/config/Chrome/mac/x64/config.h",
+    "chromium/config/Chrome/win/arm64/config.h",
+    "chromium/config/Chrome/win/ia32/config.h",
+    "chromium/config/Chrome/win/x64/config.h",
+    "chromium/config/Chromium/android/arm-neon/config.h",
+    "chromium/config/Chromium/android/arm64/config.h",
+    "chromium/config/Chromium/android/ia32/config.h",
+    "chromium/config/Chromium/android/x64/config.h",
+    "chromium/config/Chromium/ios/arm64/config.h",
+    "chromium/config/Chromium/ios/x64/config.h",
+    "chromium/config/Chromium/linux-noasm/x64/config.h",
+    "chromium/config/Chromium/linux/arm-neon/config.h",
+    "chromium/config/Chromium/linux/arm/config.h",
+    "chromium/config/Chromium/linux/arm64/config.h",
+    "chromium/config/Chromium/linux/ia32/config.h",
+    "chromium/config/Chromium/linux/riscv64/config.h",
+    "chromium/config/Chromium/linux/x64/config.h",
+    "chromium/config/Chromium/mac/arm64/config.h",
+    "chromium/config/Chromium/mac/x64/config.h",
+    "chromium/config/Chromium/win/arm64/config.h",
+    "chromium/config/Chromium/win/ia32/config.h",
+    "chromium/config/Chromium/win/x64/config.h"
+  ],
+  "public_test_fixtures": [
+    {
+      "path": "libavformat/tls_openssl.c",
+      "sha256": "b77b6f65fdae18b2f1122a8d6e53b564d2906fe75eb2171a8a0f2bd3b0de3bb1",
+      "origin": "unmodified public upstream test fixture"
+    }
+  ]
+}

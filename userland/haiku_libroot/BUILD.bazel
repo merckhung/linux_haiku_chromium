@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: MIT
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "haiku_libroot",
+    srcs = [
+        "area.cpp",
+        "debug.cpp",
+        "find_directory.cpp",
+        "fs_attr.cpp",
+        "haiku_ipc.cpp",
+        "port.cpp",
+        "sem.cpp",
+        "system_info.cpp",
+        "thread.cpp",
+        "time.cpp",
+        "haiku_vfs.cpp",
+        "haiku_locks.cpp",
+    ],
+    hdrs = [
+        "deskbar_leaf_icon.h",
+        "haiku_ipc.h",
+        "//userland:haiku_compat.h",
+    ],
+    copts = [
+        "-std=c++20",
+        "-fPIC",
+        "-D_GNU_SOURCE",
+        "-include",
+        "config/types.h",
+        "-include",
+        "userland/haiku_compat.h",
+    ],
+    linkopts = [
+        "-lpthread",
+        "-lrt",
+    ],
+    deps = [
+        "@haiku//:headers",
+    ],
+    alwayslink = True,
+)
+
+cc_binary(
+    name = "libroot.so",
+    linkshared = True,
+    deps = [
+        ":haiku_libroot",
+    ],
+)
+
+cc_binary(
+    name = "haiku_libroot_test_bin",
+    srcs = ["haiku_libroot_test.cpp"],
+    copts = [
+        "-std=c++20",
+        "-D_GNU_SOURCE",
+        "-include",
+        "config/types.h",
+    ],
+    linkopts = [
+        "-static",
+    ],
+    deps = [
+        ":haiku_libroot",
+    ],
+)
+
+cc_test(
+    name = "haiku_libroot_test",
+    srcs = ["haiku_libroot_test.cpp"],
+    copts = [
+        "-std=c++20",
+        "-D_GNU_SOURCE",
+        "-include",
+        "config/types.h",
+    ],
+    deps = [
+        ":haiku_libroot",
+    ],
+)

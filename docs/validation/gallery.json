@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-10-27T03:34:19.039618+00:00",
+  "capture_method": "QMP screendump with lossless PPM-to-PNG conversion",
+  "runs": [
+    {
+      "arch": "arm64",
+      "started_utc": "2026-10-27T03:31:53.515504+00:00",
+      "captured_utc": "2026-10-27T03:34:19.039098+00:00",
+      "kernel": "bazel-bin/kernel/Image",
+      "kernel_sha256": "6b024548f5ced5ca60f3bbded8f0f216561dc3b5adc604b3456fa0283c605b81",
+      "initrd": "bazel-bin/rootfs/initramfs_arm64.cpio.gz",
+      "initrd_sha256": "c2bc99cc4693e1328beff5618bc4774aa96ec7dc2b8d0ab471296ab5cec35b25",
+      "qmp_status": {
+        "status": "running",
+        "running": true
+      },
+      "qmp_target": {
+        "arch": "aarch64"
+      },
+      "guest_cpus": 8,
+      "memory": {
+        "base-memory": 2147483648,
+        "plugged-memory": 0
+      },
+      "log": "docs/validation/gallery-arm64.txt",
+      "log_sha256": "8ad976ff0dc52791adeffa210581caf981b19e067d01da28542d1aee848ee6e7",
+      "screenshots": [
+        {
+          "tab": 1,
+          "path": "docs/screenshots/haiku-widget-gallery-arm64-tab1.png",
+          "sha256": "53c165dd49fb82b2e4a40a3e239bc05833000ddbe674fa8b7cca90f313831df1"
+        },
+        {
+          "tab": 2,
+          "path": "docs/screenshots/haiku-widget-gallery-arm64-tab2.png",
+          "sha256": "8d3551e45560a888dd1f0fa8af47aeccea8eb74249d63200237f78a213ad8d06"
+        },
+        {
+          "tab": 3,
+          "path": "docs/screenshots/haiku-widget-gallery-arm64-tab3.png",
+          "sha256": "f47cf2068cf688a6d4a00461ea99f96890b3e3508575724c6bb658e3e8392e6c"
+        },
+        {
+          "tab": 4,
+          "path": "docs/screenshots/haiku-widget-gallery-arm64-tab4.png",
+          "sha256": "57415c7424e3b68137dbedbf2782eda675af89d59e17d6b5ed81f1188ce43750"
+        }
+      ],
+      "host_window_mapped": true,
+      "visual_review_completed": true
+    },
+    {
+      "arch": "x86_64",
+      "started_utc": "2026-10-27T03:31:53.188269+00:00",
+      "captured_utc": "2026-10-27T03:32:07.286573+00:00",
+      "kernel": "bazel-bin/kernel/bzImage",
+      "kernel_sha256": "c0709e515d15624513704ba984d79db9dd6c2a46bf5ca1b9faff7bda5b7a8b59",
+      "initrd": "bazel-bin/rootfs/initramfs.cpio.gz",
+      "initrd_sha256": "16d5336d46870c50451c293b3790ebb536440707800ee44dd370396ee9a74ee3",
+      "qmp_status": {
+        "status": "running",
+        "running": true
+      },
+      "qmp_target": {
+        "arch": "x86_64"
+      },
+      "guest_cpus": 4,
+      "memory": {
+        "base-memory": 2147483648,
+        "plugged-memory": 0
+      },
+      "log": "docs/validation/gallery-x86_64.txt",
+      "log_sha256": "64a107a57e2fbecd37510d7c4a991ea0860af973a7583255c5ab99b74abc7491",
+      "screenshots": [
+        {
+          "tab": 1,
+          "path": "docs/screenshots/haiku-widget-gallery-tab1.png",
+          "sha256": "30e62e4d45b9eeef55757c6e60bca381b991de60c02e4137bcfdc84d42c8944b"
+        },
+        {
+          "tab": 2,
+          "path": "docs/screenshots/haiku-widget-gallery-tab2.png",
+          "sha256": "5900f9a9e07b9a3ce37a91a39c170d4e4888ab090c0420fdd7d4ba59e4304ceb"
+        },
+        {
+          "tab": 3,
+          "path": "docs/screenshots/haiku-widget-gallery-tab3.png",
+          "sha256": "e80a1b75c3297f768462f6cc55f64988a9136d5b514d91e6cbc1ef8a918ef427"
+        },
+        {
+          "tab": 4,
+          "path": "docs/screenshots/haiku-widget-gallery-tab4.png",
+          "sha256": "1aabbf2c0045edb544d4405b9772263c8a8b8828daee38adc561689373805c61"
+        }
+      ],
+      "host_window_mapped": true,
+      "visual_review_completed": true
+    }
+  ],
+  "visual_review": "Individually inspected all four tabs on both architectures: controls, text and lists, sliders with live system information, and vector graphics. Each capture shows the selected tab fully painted without a Terminal overlay. Both corresponding GTK windows were confirmed IsViewable.",
+  "reviewed_utc": "2026-10-27T03:34:38.024405+00:00"
+}

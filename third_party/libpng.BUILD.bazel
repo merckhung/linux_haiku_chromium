@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: Libpng
+# Bazel build for libpng 1.6.43 (used by the ARM64 cross build of app_server).
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
+
+genrule(
+    name = "pnglibconf",
+    srcs = ["scripts/pnglibconf.h.prebuilt"],
+    outs = ["pnglibconf.h"],
+    cmd = "cp $< $@",
+)
+
+cc_library(
+    name = "libpng",
+    srcs = [
+        "png.c",
+        "pngdebug.h",
+        "pngerror.c",
+        "pngget.c",
+        "pnginfo.h",
+        "pngmem.c",
+        "pngpread.c",
+        "pngpriv.h",
+        "pngread.c",
+        "pngrio.c",
+        "pngrtran.c",
+        "pngrutil.c",
+        "pngset.c",
+        "pngstruct.h",
+        "pngtrans.c",
+        "pngwio.c",
+        "pngwrite.c",
+        "pngwtran.c",
+        "pngwutil.c",
+    ],
+    hdrs = [
+        "png.h",
+        "pngconf.h",
+        ":pnglibconf",
+    ],
+    copts = [
+        "-O2",
+        "-fPIC",
+        # Portable C filters only; avoids needing the NEON assembly sources.
+        "-DPNG_ARM_NEON_OPT=0",
+        "-w",
+    ],
+    includes = ["."],
+    deps = ["@lhc_zlib//:zlib"],
+)

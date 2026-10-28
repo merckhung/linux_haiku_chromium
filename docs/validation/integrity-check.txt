@@ -1,0 +1,7 @@
+PASS: six verifier logs, six CPIO archives, both packaged Chromium sets, ELF architectures and all screenshots checked
+x86_64 tier 1: 2.56 s
+x86_64 tier 2: 19.7 s
+x86_64 tier 3: 39.0 s
+arm64 tier 1: 2.1 s
+arm64 tier 2: 63.7 s
+arm64 tier 3: 101.49 s

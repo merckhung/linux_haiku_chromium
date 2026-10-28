@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: GPL-2.0-only
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "build_busybox.py",
+])
+
+genrule(
+    name = "busybox_bin",
+    srcs = [
+        "build_busybox.py",
+        "@busybox//:sources",
+    ],
+    outs = ["busybox"],
+    cmd = """
+        python3 $(location build_busybox.py) \
+            --src_dir="external/+release_repository+busybox" \
+            --out="$@" \
+            --jobs=16
+    """,
+    local = 1,
+)
+
+genrule(
+    name = "busybox_arm64",
+    srcs = [
+        "build_busybox.py",
+        "@busybox//:sources",
+    ],
+    outs = ["busybox_arm64_bin"],
+    cmd = """
+        python3 $(location build_busybox.py) \
+            --src_dir="external/+release_repository+busybox" \
+            --cross_compile=aarch64-linux-gnu- \
+            --out="$@" \
+            --jobs=16
+    """,
+    local = 1,
+)

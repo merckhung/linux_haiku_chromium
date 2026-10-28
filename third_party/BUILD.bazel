@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: MIT
+package(default_visibility = ["//visibility:public"])
+
+exports_files(glob(["*.BUILD.bazel"]))

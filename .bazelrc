@@ -1,0 +1,13 @@
+# Bazel configuration for linux_haiku_chromium
+# Retain completed build outputs across host reboots.
+startup --output_base=/var/tmp/lhc_bz
+build --spawn_strategy=local
+build --action_env=PATH
+build --action_env=HOME
+build --action_env=LANG=C.UTF-8
+build --cxxopt=-std=c++20
+build --copt=-O2
+build --copt=-fPIC
+build --jobs=16
+build --color=yes
+build --show_progress_rate_limit=5

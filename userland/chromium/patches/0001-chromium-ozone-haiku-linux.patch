@@ -1,0 +1,2113 @@
+diff --git a/build/config/ozone.gni b/build/config/ozone.gni
+index f75adeef2d..993c658600 100644
+--- a/build/config/ozone.gni
++++ b/build/config/ozone.gni
+@@ -56,6 +56,9 @@ declare_args() {
+   # Compile the 'wayland' platform.
+   ozone_platform_wayland = false
+ 
++  # Compile the 'haiku' platform.
++  ozone_platform_haiku = false
++
+   if (ozone_auto_platforms) {
+     # Use headless as the default platform unless modified below.
+     ozone_platform = "headless"
+@@ -106,7 +109,8 @@ if (is_a_target_toolchain) {
+   assert(
+       use_ozone || !(ozone_platform_cast || ozone_platform_drm ||
+                          ozone_platform_flatland || ozone_platform_headless ||
+-                         ozone_platform_x11 || ozone_platform_wayland),
++                         ozone_platform_x11 || ozone_platform_wayland ||
++                         ozone_platform_haiku),
+       "Must set use_ozone to select ozone platforms")
+ }
+ 
+diff --git a/chrome/browser/chrome_browser_main_linux.cc b/chrome/browser/chrome_browser_main_linux.cc
+index 4e6d8da9f5..28b4487fab 100644
+--- a/chrome/browser/chrome_browser_main_linux.cc
++++ b/chrome/browser/chrome_browser_main_linux.cc
+@@ -28,6 +28,12 @@
+ #include "ui/ozone/public/ozone_platform.h"
+ #if BUILDFLAG(USE_DBUS)
+ #include "components/dbus/thread_linux/dbus_thread_linux.h"
++#else
++#include "chrome/browser/notifications/notification_platform_bridge.h"
++#include "chrome/browser/platform_util.h"
++#include "chrome/browser/platform_util_internal.h"
++#include "device/bluetooth/floss/floss_features.h"
++#include "url/gurl.h"
+ #endif  // BUILDFLAG(USE_DBUS)
+ #endif  // BUILDFLAG(IS_LINUX)
+ 
+@@ -130,8 +136,8 @@ void ChromeBrowserMainPartsLinux::PostDestroyThreads() {
+ #else
+ #if BUILDFLAG(USE_DBUS)
+   session_end_listener_.reset();
+-#endif
+   bluez::BluezDBusManager::Shutdown();
++#endif
+   // TODO(shelley.vohr): Call dbus_thread_linux::Shutdown() here. It cannot run
+   // yet because the in-process device service (battery, wifi, wake lock) is
+   // destroyed after this last BrowserMainParts hook and still dereferences
+@@ -141,3 +147,29 @@ void ChromeBrowserMainPartsLinux::PostDestroyThreads() {
+ 
+   ChromeBrowserMainPartsPosix::PostDestroyThreads();
+ }
++
++#if BUILDFLAG(IS_LINUX) && !BUILDFLAG(USE_DBUS)
++std::unique_ptr<NotificationPlatformBridge>
++NotificationPlatformBridge::Create() {
++  return nullptr;
++}
++
++bool NotificationPlatformBridge::CanHandleType(
++    NotificationHandler::Type notification_type) {
++  return false;
++}
++
++namespace platform_util {
++void ShowItemInFolder(Profile* profile, const base::FilePath& full_path) {}
++void OpenExternal(const GURL& url) {}
++namespace internal {
++void PlatformOpenVerifiedItem(const base::FilePath& path, OpenItemType type) {}
++}  // namespace internal
++}  // namespace platform_util
++
++namespace floss::features {
++bool IsFlossEnabled() {
++  return false;
++}
++}  // namespace floss::features
++#endif  // BUILDFLAG(IS_LINUX) && !BUILDFLAG(USE_DBUS)
+diff --git a/chrome/browser/net/profile_network_context_service.cc b/chrome/browser/net/profile_network_context_service.cc
+index 62ff3787b2..d29d1a3b57 100644
+--- a/chrome/browser/net/profile_network_context_service.cc
++++ b/chrome/browser/net/profile_network_context_service.cc
+@@ -324,7 +324,7 @@ void UpdateCookieSettings(Profile* profile, ContentSettingsType type) {
+ 
+ #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || \
+     BUILDFLAG(IS_ANDROID)
+-std::unique_ptr<net::ClientCertStore> GetWrappedCertStore(
++[[maybe_unused]] std::unique_ptr<net::ClientCertStore> GetWrappedCertStore(
+     Profile* profile,
+     std::unique_ptr<net::ClientCertStore> platform_store) {
+   client_certificates::CertificateProvisioningService*
+@@ -1313,6 +1313,8 @@ ProfileNetworkContextService::CreateClientCertStore() {
+   // the OS as part of the call to show the cert selection dialog.
+   return GetWrappedCertStore(profile_,
+                              std::make_unique<net::ClientCertStoreEmpty>());
++#elif BUILDFLAG(IS_LINUX)
++  return nullptr;
+ #else
+ #error Unknown platform.
+ #endif
+diff --git a/chrome/browser/ui/webui/certificate_manager/client_cert_sources.cc b/chrome/browser/ui/webui/certificate_manager/client_cert_sources.cc
+index d3ed8b3bdf..2997426146 100644
+--- a/chrome/browser/ui/webui/certificate_manager/client_cert_sources.cc
++++ b/chrome/browser/ui/webui/certificate_manager/client_cert_sources.cc
+@@ -128,7 +128,7 @@ class ClientCertStoreLoader {
+       active_requests_;
+ };
+ 
+-#if BUILDFLAG(IS_LINUX)
++#if BUILDFLAG(IS_LINUX) && BUILDFLAG(USE_NSS_CLIENT_CERTS)
+ class ClientCertStoreFactoryNSS : public ClientCertStoreFactory {
+  public:
+   std::unique_ptr<net::ClientCertStore> CreateClientCertStore() override {
+@@ -153,7 +153,7 @@ class ClientCertStoreFactoryMac : public ClientCertStoreFactory {
+ };
+ #endif
+ 
+-#if !BUILDFLAG(IS_CHROMEOS) && !BUILDFLAG(IS_LINUX)
++#if !BUILDFLAG(IS_CHROMEOS) && !(BUILDFLAG(IS_LINUX) && BUILDFLAG(USE_NSS_CLIENT_CERTS))
+ std::unique_ptr<ClientCertStoreLoader> CreatePlatformClientCertLoader(
+     Profile* profile) {
+ #if BUILDFLAG(IS_WIN)
+@@ -324,7 +324,7 @@ class ClientCertSource : public CertificateManagerPageHandler::CertSource {
+   std::optional<net::CertificateList> certs_;
+ };
+ 
+-#if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX)
++#if BUILDFLAG(IS_CHROMEOS) || (BUILDFLAG(IS_LINUX) && BUILDFLAG(USE_NSS_CLIENT_CERTS))
+ // ChromeOS currently can use either Kcer or NSS for listing client certs, and
+ // Linux uses NSS only. This interface provides an abstraction to hide that
+ // from WritableClientCertSource. Currently this class only handles reading
+@@ -1033,7 +1033,7 @@ CreatePlatformClientCertSource(
+     mojo::Remote<certificate_manager::mojom::CertificateManagerPage>*
+         remote_client,
+     Profile* profile) {
+-#if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX)
++#if BUILDFLAG(IS_CHROMEOS) || (BUILDFLAG(IS_LINUX) && BUILDFLAG(USE_NSS_CLIENT_CERTS))
+   return std::make_unique<WritableClientCertSource>(remote_client, profile);
+ #else
+   return std::make_unique<ClientCertSource>(
+diff --git a/chrome/browser/web_applications/BUILD.gn b/chrome/browser/web_applications/BUILD.gn
+index 0f477a1376..7cfd6e32bf 100644
+--- a/chrome/browser/web_applications/BUILD.gn
++++ b/chrome/browser/web_applications/BUILD.gn
+@@ -456,13 +456,17 @@ source_set("web_applications") {
+   if (is_linux) {
+     # Desktop linux, doesn't count ChromeOS.
+     sources += [
+-      "os_integration/dynamic_launcher_portal.cc",
+-      "os_integration/dynamic_launcher_portal.h",
+       "os_integration/web_app_file_handler_registration_linux.cc",
+       "os_integration/web_app_run_on_os_login_linux.cc",
+       "os_integration/web_app_shortcut_linux.cc",
+       "os_integration/web_app_shortcut_linux.h",
+     ]
++    if (use_dbus) {
++      sources += [
++        "os_integration/dynamic_launcher_portal.cc",
++        "os_integration/dynamic_launcher_portal.h",
++      ]
++    }
+   }
+ 
+   if (is_mac) {
+@@ -1099,10 +1103,12 @@ source_set("web_applications_unit_tests") {
+   if (is_linux) {
+     # Desktop linux, doesn't count ChromeOS.
+     sources += [
+-      "os_integration/dynamic_launcher_portal_unittest.cc",
+       "os_integration/web_app_run_on_os_login_linux_unittest.cc",
+       "os_integration/web_app_shortcut_linux_unittest.cc",
+     ]
++    if (use_dbus) {
++      sources += [ "os_integration/dynamic_launcher_portal_unittest.cc" ]
++    }
+   }
+ 
+   if (!is_android && !is_chromeos) {
+diff --git a/chrome/utility/importer/nss_decryptor.cc b/chrome/utility/importer/nss_decryptor.cc
+index 6e46b74770..843d18e5de 100644
+--- a/chrome/utility/importer/nss_decryptor.cc
++++ b/chrome/utility/importer/nss_decryptor.cc
+@@ -110,6 +110,7 @@ std::u16string NSSDecryptor::Decrypt(const std::string& crypt) const {
+   // by a leading '~'. Otherwise, we should decrypt the text.
+   std::string plain;
+   if (crypt[0] != '~') {
++#if BUILDFLAG(IS_WIN) || BUILDFLAG(USE_NSS_CERTS)
+     std::string decoded_data;
+     if (!base::Base64Decode(crypt, &decoded_data))
+       return std::u16string();
+@@ -137,6 +138,9 @@ std::u16string NSSDecryptor::Decrypt(const std::string& crypt) const {
+ 
+     SECITEM_FreeItem(&reply, PR_FALSE);
+     FreeSlot(slot);
++#else
++    return std::u16string();
++#endif
+   } else {
+     // Deletes the leading '~' before decoding.
+     if (!base::Base64Decode(crypt.substr(1), &plain))
+diff --git a/chrome/utility/importer/nss_decryptor.h b/chrome/utility/importer/nss_decryptor.h
+index 24eb151b1f..ecb1ca5716 100644
+--- a/chrome/utility/importer/nss_decryptor.h
++++ b/chrome/utility/importer/nss_decryptor.h
+@@ -13,7 +13,28 @@
+ #elif BUILDFLAG(USE_NSS_CERTS)
+ #include "chrome/utility/importer/nss_decryptor_system_nss.h"
+ #else
+-#error NSSDecryptor not implemented.
++#include <string>
++#include <vector>
++#include "base/files/file_path.h"
++struct FirefoxRawPasswordInfo;
++namespace user_data_importer {
++struct ImportedPasswordForm;
++}
++class NSSDecryptor {
++ public:
++  NSSDecryptor() = default;
++  ~NSSDecryptor() = default;
++  bool Init(const base::FilePath&, const base::FilePath&) { return false; }
++  std::u16string Decrypt(const std::string& crypt) const;
++  bool ReadAndParseLogins(
++      const base::FilePath& json_file,
++      std::vector<user_data_importer::ImportedPasswordForm>* forms);
++ private:
++  bool CreatePasswordFormFromRawInfo(
++      const FirefoxRawPasswordInfo& raw_password_info,
++      user_data_importer::ImportedPasswordForm* form);
++  bool is_nss_initialized_ = false;
++};
+ #endif
+ 
+ #endif  // CHROME_UTILITY_IMPORTER_NSS_DECRYPTOR_H_
+diff --git a/components/crash/core/app/crashpad_linux.cc b/components/crash/core/app/crashpad_linux.cc
+index 879b0a5d1e..3588bf76be 100644
+--- a/components/crash/core/app/crashpad_linux.cc
++++ b/components/crash/core/app/crashpad_linux.cc
+@@ -191,8 +191,10 @@ bool PlatformCrashpadInitialization(
+     crash_reporter_client->GetProductInfo(&product_info);
+ 
+     std::map<std::string, std::string> annotations;
+-    annotations["prod"] = std::string(product_info.product_name());
+-    annotations["ver"] = std::string(product_info.version());
++    std::string_view prod_name = product_info.product_name();
++    std::string_view prod_ver = product_info.version();
++    annotations["prod"] = prod_name.empty() ? "Chromium" : std::string(prod_name);
++    annotations["ver"] = prod_ver.empty() ? "1.0" : std::string(prod_ver);
+ 
+     std::string_view channel = product_info.channel();
+ #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
+@@ -263,9 +265,12 @@ bool PlatformCrashpadInitialization(
+     internal::AppendSharedMemoryUserStreamArgs(user_streams, &arguments,
+                                                &preserve_handles);
+ 
+-    CHECK(client.StartHandler(handler_path, *database_path, metrics_path, url,
+-                              annotations, arguments, false, false, attachments,
+-                              preserve_handles));
++    if (!client.StartHandler(handler_path, *database_path, metrics_path, url,
++                             annotations, arguments, false, false, attachments,
++                             preserve_handles)) {
++      LOG(WARNING) << "Crashpad handler failed to start; continuing without crash reporter";
++      return true;
++    }
+   } else {
+     int fd = base::GlobalDescriptors::GetInstance()->Get(kCrashDumpSignal);
+ 
+diff --git a/net/cert/cert_verify_proc.cc b/net/cert/cert_verify_proc.cc
+index 042b35bec9..d08000b070 100644
+--- a/net/cert/cert_verify_proc.cc
++++ b/net/cert/cert_verify_proc.cc
+@@ -419,7 +419,7 @@ scoped_refptr<CertVerifyProc> CertVerifyProc::CreateBuiltinWithChromeRootStore(
+   return CreateCertVerifyProcBuiltin(
+       std::move(cert_net_fetcher), std::move(crl_set), std::move(ct_verifier),
+       std::move(ct_policy_enforcer),
+-#if BUILDFLAG(IS_CHROMEOS)
++#if BUILDFLAG(IS_CHROMEOS) || !BUILDFLAG(USE_NSS_CERTS)
+       CreateChromeOnlySystemTrustStore(std::move(chrome_root)),
+ #else
+       CreateSslSystemTrustStoreChromeRoot(std::move(chrome_root)),
+diff --git a/net/cert/internal/system_trust_store.cc b/net/cert/internal/system_trust_store.cc
+index b8462e0798..9ea5c80cff 100644
+--- a/net/cert/internal/system_trust_store.cc
++++ b/net/cert/internal/system_trust_store.cc
+@@ -425,6 +425,13 @@ void InitializeTrustStoreAndroid() {}
+ 
+ #endif  // CHROME_ROOT_STORE_SUPPORTED
+ 
++#elif BUILDFLAG(IS_LINUX) && BUILDFLAG(CHROME_ROOT_STORE_SUPPORTED)
++
++std::unique_ptr<SystemTrustStore> CreateSslSystemTrustStoreChromeRoot(
++    std::unique_ptr<TrustStoreChrome> chrome_root) {
++  return CreateChromeOnlySystemTrustStore(std::move(chrome_root));
++}
++
+ #endif
+ 
+ }  // namespace net
+diff --git a/net/cert/internal/system_trust_store.h b/net/cert/internal/system_trust_store.h
+index 6c3696aaa6..3bc622e15c 100644
+--- a/net/cert/internal/system_trust_store.h
++++ b/net/cert/internal/system_trust_store.h
+@@ -115,7 +115,7 @@ NET_EXPORT std::unique_ptr<SystemTrustStore> CreateSslSystemTrustStore();
+ 
+ #if BUILDFLAG(CHROME_ROOT_STORE_SUPPORTED)
+ #if BUILDFLAG(USE_NSS_SERVER_CERTS) || BUILDFLAG(IS_MAC) || \
+-    BUILDFLAG(IS_WIN) || BUILDFLAG(IS_ANDROID)
++    BUILDFLAG(IS_WIN) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX)
+ // Creates an instance of SystemTrustStore that wraps the current platform's SSL
+ // trust store for user added roots, but uses the Chrome Root Store trust
+ // anchors. This cannot return nullptr.
+diff --git a/ui/base/accelerators/global_accelerator_listener/global_accelerator_listener_ozone.cc b/ui/base/accelerators/global_accelerator_listener/global_accelerator_listener_ozone.cc
+index 94acc1dc03..48abbdad46 100644
+--- a/ui/base/accelerators/global_accelerator_listener/global_accelerator_listener_ozone.cc
++++ b/ui/base/accelerators/global_accelerator_listener/global_accelerator_listener_ozone.cc
+@@ -68,8 +68,8 @@ GlobalAcceleratorListener* GlobalAcceleratorListener::GetInstance() {
+         new GlobalAcceleratorListenerLinux(nullptr, GetSessionName());
+     return linux_instance;
+   }
+-  return nullptr;
+ #endif
++  return nullptr;
+ }
+ 
+ // static
+diff --git a/ui/gl/gl_display.cc b/ui/gl/gl_display.cc
+index 171d4870a7..86a7ee0707 100644
+--- a/ui/gl/gl_display.cc
++++ b/ui/gl/gl_display.cc
+@@ -239,12 +239,12 @@ EGLDisplay GetDisplayFromType(
+       extra_display_attribs.push_back(EGL_PLATFORM_ANGLE_DEVICE_TYPE_ANGLE);
+       extra_display_attribs.push_back(
+           EGL_PLATFORM_ANGLE_DEVICE_TYPE_SWIFTSHADER_ANGLE);
+-#if BUILDFLAG(IS_CHROMEOS) && BUILDFLAG(SUPPORTS_OZONE_X11)
++#if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX)
+       extra_display_attribs.push_back(
+           EGL_PLATFORM_ANGLE_NATIVE_PLATFORM_TYPE_ANGLE);
+       extra_display_attribs.push_back(
+           EGL_PLATFORM_VULKAN_DISPLAY_MODE_HEADLESS_ANGLE);
+-#endif  // BUILDFLAG(IS_CHROMEOS) && BUILDFLAG(SUPPORTS_OZONE_X11)
++#endif  // BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX)
+       return GetPlatformANGLEDisplay(
+           display, EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE, enabled_angle_features,
+           disabled_angle_features, extra_display_attribs);
+diff --git a/ui/linux/fallback_linux_ui.cc b/ui/linux/fallback_linux_ui.cc
+index e9f8975c82..4a23f90635 100644
+--- a/ui/linux/fallback_linux_ui.cc
++++ b/ui/linux/fallback_linux_ui.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "ui/linux/fallback_linux_ui.h"
+ 
++#include <dlfcn.h>
++
+ #include "base/notimplemented.h"
+ #include "ui/base/ime/linux/linux_input_method_context.h"
+ #include "ui/base/ime/text_edit_commands.h"
+@@ -83,15 +85,46 @@ bool FallbackLinuxUi::GetDisplayProperty(int id, int* result) const {
+   return false;
+ }
+ 
+-void FallbackLinuxUi::GetFocusRingColor(SkColor* color) const {}
++void FallbackLinuxUi::GetFocusRingColor(SkColor* color) const {
++  using GetUiColorFn = int (*)(int, uint32_t*);
++  static GetUiColorFn fn = reinterpret_cast<GetUiColorFn>(
++      dlsym(RTLD_DEFAULT, "haiku_ozone_get_ui_color"));
++  uint32_t argb = 0;
++  // B_KEYBOARD_NAVIGATION_COLOR = 5
++  if (fn && fn(5, &argb) == 0) {
++    *color = static_cast<SkColor>(argb);
++  }
++}
+ 
+-void FallbackLinuxUi::GetActiveSelectionBgColor(SkColor* color) const {}
++void FallbackLinuxUi::GetActiveSelectionBgColor(SkColor* color) const {
++  using GetUiColorFn = int (*)(int, uint32_t*);
++  static GetUiColorFn fn = reinterpret_cast<GetUiColorFn>(
++      dlsym(RTLD_DEFAULT, "haiku_ozone_get_ui_color"));
++  uint32_t argb = 0;
++  // B_CONTROL_HIGHLIGHT_COLOR = 15
++  if (fn && fn(15, &argb) == 0) {
++    *color = static_cast<SkColor>(argb);
++  }
++}
+ 
+-void FallbackLinuxUi::GetActiveSelectionFgColor(SkColor* color) const {}
++void FallbackLinuxUi::GetActiveSelectionFgColor(SkColor* color) const {
++  *color = SK_ColorWHITE;
++}
+ 
+-void FallbackLinuxUi::GetInactiveSelectionBgColor(SkColor* color) const {}
++void FallbackLinuxUi::GetInactiveSelectionBgColor(SkColor* color) const {
++  using GetUiColorFn = int (*)(int, uint32_t*);
++  static GetUiColorFn fn = reinterpret_cast<GetUiColorFn>(
++      dlsym(RTLD_DEFAULT, "haiku_ozone_get_ui_color"));
++  uint32_t argb = 0;
++  // B_PANEL_BACKGROUND_COLOR = 1
++  if (fn && fn(1, &argb) == 0) {
++    *color = static_cast<SkColor>(argb);
++  }
++}
+ 
+-void FallbackLinuxUi::GetInactiveSelectionFgColor(SkColor* color) const {}
++void FallbackLinuxUi::GetInactiveSelectionFgColor(SkColor* color) const {
++  *color = SK_ColorBLACK;
++}
+ 
+ gfx::Image FallbackLinuxUi::GetIconForContentType(
+     const std::string& content_type,
+diff --git a/ui/ozone/BUILD.gn b/ui/ozone/BUILD.gn
+index 4a3e48570c..82ac4e4e3f 100644
+--- a/ui/ozone/BUILD.gn
++++ b/ui/ozone/BUILD.gn
+@@ -72,6 +72,11 @@ if (ozone_platform_flatland) {
+   ozone_platform_test_deps += [ "platform/flatland:flatland_unittests" ]
+ }
+ 
++if (ozone_platform_haiku) {
++  ozone_platforms += [ "haiku" ]
++  ozone_platform_deps += [ "platform/haiku" ]
++}
++
+ platform_list_cc_file = "$target_gen_dir/platform_list.cc"
+ platform_list_h_file = "$target_gen_dir/platform_list.h"
+ platform_list_txt_file = "$target_gen_dir/platform_list.txt"
+diff --git a/ui/ozone/platform/haiku/BUILD.gn b/ui/ozone/platform/haiku/BUILD.gn
+new file mode 100644
+index 0000000000..bc3c42e341
+--- /dev/null
++++ b/ui/ozone/platform/haiku/BUILD.gn
+@@ -0,0 +1,50 @@
++# Copyright 2026 The Chromium Authors
++# SPDX-License-Identifier: MIT
++
++import("//gpu/vulkan/features.gni")
++
++visibility = [ "//ui/ozone/*" ]
++
++source_set("haiku") {
++  sources = [
++    "client_native_pixmap_factory_haiku.cc",
++    "client_native_pixmap_factory_haiku.h",
++    "haiku_capi.cc",
++    "haiku_capi.h",
++    "haiku_screen.cc",
++    "haiku_screen.h",
++    "haiku_surface_factory.cc",
++    "haiku_surface_factory.h",
++    "haiku_window.cc",
++    "haiku_window.h",
++    "haiku_window_manager.cc",
++    "haiku_window_manager.h",
++    "ozone_platform_haiku.cc",
++    "ozone_platform_haiku.h",
++  ]
++
++  defines = [ "OZONE_IMPLEMENTATION" ]
++
++  deps = [
++    "//base",
++    "//build:chromecast_buildflags",
++    "//components/viz/common/resources:shared_image_format",
++    "//gpu/vulkan:buildflags",
++    "//skia",
++    "//ui/base",
++    "//ui/base/cursor",
++    "//ui/base/ime",
++    "//ui/display",
++    "//ui/events",
++    "//ui/events:dom_keycode_converter",
++    "//ui/events/ozone/layout",
++    "//ui/events/platform",
++    "//ui/gfx/geometry",
++    "//ui/gl",
++    "//ui/ozone:ozone_base",
++    "//ui/ozone/common",
++    "//ui/platform_window",
++  ]
++
++  libs = [ "dl" ]
++}
+diff --git a/ui/ozone/platform/haiku/client_native_pixmap_factory_haiku.cc b/ui/ozone/platform/haiku/client_native_pixmap_factory_haiku.cc
+new file mode 100644
+index 0000000000..d090211594
+--- /dev/null
++++ b/ui/ozone/platform/haiku/client_native_pixmap_factory_haiku.cc
+@@ -0,0 +1,14 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#include "ui/ozone/platform/haiku/client_native_pixmap_factory_haiku.h"
++
++#include "ui/ozone/common/stub_client_native_pixmap_factory.h"
++
++namespace ui {
++
++gfx::ClientNativePixmapFactory* CreateClientNativePixmapFactoryHaiku() {
++  return CreateStubClientNativePixmapFactory();
++}
++
++}  // namespace ui
+diff --git a/ui/ozone/platform/haiku/client_native_pixmap_factory_haiku.h b/ui/ozone/platform/haiku/client_native_pixmap_factory_haiku.h
+new file mode 100644
+index 0000000000..133a14d089
+--- /dev/null
++++ b/ui/ozone/platform/haiku/client_native_pixmap_factory_haiku.h
+@@ -0,0 +1,18 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#ifndef UI_OZONE_PLATFORM_HAIKU_CLIENT_NATIVE_PIXMAP_FACTORY_HAIKU_H_
++#define UI_OZONE_PLATFORM_HAIKU_CLIENT_NATIVE_PIXMAP_FACTORY_HAIKU_H_
++
++namespace gfx {
++class ClientNativePixmapFactory;
++}
++
++namespace ui {
++
++// Constructor hook for use in constructor_list.cc
++gfx::ClientNativePixmapFactory* CreateClientNativePixmapFactoryHaiku();
++
++}  // namespace ui
++
++#endif  // UI_OZONE_PLATFORM_HAIKU_CLIENT_NATIVE_PIXMAP_FACTORY_HAIKU_H_
+diff --git a/ui/ozone/platform/haiku/haiku_capi.cc b/ui/ozone/platform/haiku/haiku_capi.cc
+new file mode 100644
+index 0000000000..f50818eebd
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_capi.cc
+@@ -0,0 +1,76 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#include "ui/ozone/platform/haiku/haiku_capi.h"
++
++#include <dlfcn.h>
++
++#include "base/logging.h"
++#include "base/no_destructor.h"
++
++namespace ui {
++
++namespace {
++
++HaikuCapi LoadHaikuCapi() {
++  HaikuCapi api;
++  void* handle = dlopen("libbe.so", RTLD_NOW | RTLD_GLOBAL);
++  if (!handle) {
++    handle = dlopen("/lib/libbe.so", RTLD_NOW | RTLD_GLOBAL);
++  }
++  if (!handle) {
++    LOG(ERROR) << "HaikuCapi: failed to dlopen libbe.so: " << dlerror();
++    return api;
++  }
++
++  api.init_app = reinterpret_cast<decltype(api.init_app)>(
++      dlsym(handle, "haiku_ozone_init_app"));
++  api.create_window = reinterpret_cast<decltype(api.create_window)>(
++      dlsym(handle, "haiku_ozone_create_window"));
++  api.destroy_window = reinterpret_cast<decltype(api.destroy_window)>(
++      dlsym(handle, "haiku_ozone_destroy_window"));
++  api.set_window_type = reinterpret_cast<decltype(api.set_window_type)>(
++      dlsym(handle, "haiku_ozone_set_window_type"));
++  api.show_window = reinterpret_cast<decltype(api.show_window)>(
++      dlsym(handle, "haiku_ozone_show_window"));
++  api.hide_window = reinterpret_cast<decltype(api.hide_window)>(
++      dlsym(handle, "haiku_ozone_hide_window"));
++  api.set_window_bounds = reinterpret_cast<decltype(api.set_window_bounds)>(
++      dlsym(handle, "haiku_ozone_set_window_bounds"));
++  api.get_window_bounds = reinterpret_cast<decltype(api.get_window_bounds)>(
++      dlsym(handle, "haiku_ozone_get_window_bounds"));
++  api.set_window_title = reinterpret_cast<decltype(api.set_window_title)>(
++      dlsym(handle, "haiku_ozone_set_window_title"));
++  api.activate_window = reinterpret_cast<decltype(api.activate_window)>(
++      dlsym(handle, "haiku_ozone_activate_window"));
++  api.minimize_window = reinterpret_cast<decltype(api.minimize_window)>(
++      dlsym(handle, "haiku_ozone_minimize_window"));
++  api.poll_event = reinterpret_cast<decltype(api.poll_event)>(
++      dlsym(handle, "haiku_ozone_poll_event"));
++  api.present_pixels = reinterpret_cast<decltype(api.present_pixels)>(
++      dlsym(handle, "haiku_ozone_present_pixels"));
++  api.get_screen_size = reinterpret_cast<decltype(api.get_screen_size)>(
++      dlsym(handle, "haiku_ozone_get_screen_size"));
++  api.get_ui_color = reinterpret_cast<decltype(api.get_ui_color)>(
++      dlsym(handle, "haiku_ozone_get_ui_color"));
++
++  api.available = api.init_app && api.create_window && api.destroy_window &&
++                  api.set_window_type &&
++                  api.show_window && api.hide_window && api.set_window_bounds &&
++                  api.get_window_bounds && api.set_window_title &&
++                  api.poll_event && api.present_pixels && api.get_screen_size;
++  if (!api.available) {
++    LOG(ERROR) << "HaikuCapi: missing symbols in libbe.so";
++  }
++  return api;
++}
++
++}  // namespace
++
++// static
++const HaikuCapi& HaikuCapi::Get() {
++  static const HaikuCapi instance = LoadHaikuCapi();
++  return instance;
++}
++
++}  // namespace ui
+diff --git a/ui/ozone/platform/haiku/haiku_capi.h b/ui/ozone/platform/haiku/haiku_capi.h
+new file mode 100644
+index 0000000000..f35e567268
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_capi.h
+@@ -0,0 +1,88 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#ifndef UI_OZONE_PLATFORM_HAIKU_HAIKU_CAPI_H_
++#define UI_OZONE_PLATFORM_HAIKU_HAIKU_CAPI_H_
++
++#include <stddef.h>
++#include <stdint.h>
++
++namespace ui {
++
++enum HaikuOzoneEventType {
++  HAIKU_OZONE_EVENT_NONE = 0,
++  HAIKU_OZONE_EVENT_MOUSE_DOWN = 1,
++  HAIKU_OZONE_EVENT_MOUSE_UP = 2,
++  HAIKU_OZONE_EVENT_MOUSE_MOVE = 3,
++  HAIKU_OZONE_EVENT_MOUSE_WHEEL = 4,
++  HAIKU_OZONE_EVENT_KEY_DOWN = 5,
++  HAIKU_OZONE_EVENT_KEY_UP = 6,
++  HAIKU_OZONE_EVENT_WINDOW_MOVED = 7,
++  HAIKU_OZONE_EVENT_WINDOW_RESIZED = 8,
++  HAIKU_OZONE_EVENT_WINDOW_ACTIVATED = 9,
++  HAIKU_OZONE_EVENT_WINDOW_CLOSE_REQUEST = 10,
++};
++
++struct HaikuOzoneEvent {
++  int32_t type;
++  float x;
++  float y;
++  float delta_x;
++  float delta_y;
++  uint32_t buttons;
++  uint32_t modifiers;
++  int32_t key_code;
++  int32_t raw_char;
++  char utf8[16];
++  int32_t width;
++  int32_t height;
++  int32_t active;
++  int32_t clicks;
++};
++
++struct HaikuCapi {
++  static const HaikuCapi& Get();
++
++  bool available = false;
++
++  int (*init_app)(const char* signature) = nullptr;
++  void* (*create_window)(int x,
++                         int y,
++                         int width,
++                         int height,
++                         const char* title,
++                         int* out_event_fd) = nullptr;
++  void (*destroy_window)(void* win_handle) = nullptr;
++  int (*set_window_type)(void* win_handle, int type) = nullptr;
++  void (*show_window)(void* win_handle) = nullptr;
++  void (*hide_window)(void* win_handle) = nullptr;
++  void (*set_window_bounds)(void* win_handle,
++                            int x,
++                            int y,
++                            int width,
++                            int height) = nullptr;
++  void (*get_window_bounds)(void* win_handle,
++                            int* x,
++                            int* y,
++                            int* width,
++                            int* height) = nullptr;
++  void (*set_window_title)(void* win_handle, const char* title) = nullptr;
++  void (*activate_window)(void* win_handle) = nullptr;
++  void (*minimize_window)(void* win_handle, int minimize) = nullptr;
++  int (*poll_event)(void* win_handle, HaikuOzoneEvent* out_event) = nullptr;
++  int (*present_pixels)(void* win_handle,
++                        const uint8_t* bgra_pixels,
++                        int src_row_bytes,
++                        int width,
++                        int height,
++                        int damage_x,
++                        int damage_y,
++                        int damage_w,
++                        int damage_h) = nullptr;
++  int (*get_screen_size)(int* out_width, int* out_height) = nullptr;
++  int (*get_ui_color)(int which, uint32_t* out_argb) = nullptr;
++};
++
++}  // namespace ui
++
++#endif  // UI_OZONE_PLATFORM_HAIKU_HAIKU_CAPI_H_
+diff --git a/ui/ozone/platform/haiku/haiku_screen.cc b/ui/ozone/platform/haiku/haiku_screen.cc
+new file mode 100644
+index 0000000000..58be408ed4
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_screen.cc
+@@ -0,0 +1,94 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#include "ui/ozone/platform/haiku/haiku_screen.h"
++
++#include "base/check_op.h"
++#include "ui/display/display.h"
++#include "ui/display/display_finder.h"
++#include "ui/ozone/platform/haiku/haiku_capi.h"
++#include "ui/ozone/platform/haiku/haiku_window.h"
++#include "ui/ozone/platform/haiku/haiku_window_manager.h"
++
++namespace ui {
++
++HaikuScreen::HaikuScreen(HaikuWindowManager* window_manager)
++    : window_manager_(window_manager) {
++  int width = 0;
++  int height = 0;
++  const auto& capi = HaikuCapi::Get();
++  CHECK(capi.available && capi.get_screen_size)
++      << "Haiku screen API is unavailable";
++  CHECK_EQ(capi.get_screen_size(&width, &height), 0)
++      << "Cannot query the Haiku display";
++  CHECK_GT(width, 0);
++  CHECK_GT(height, 0);
++
++  display::Display primary_display(1, gfx::Rect(0, 0, width, height));
++  primary_display.set_work_area(gfx::Rect(0, 0, width, height));
++  primary_display.set_device_scale_factor(1.0f);
++  primary_display.set_color_depth(24);
++  display_list_.AddDisplay(primary_display, display::DisplayList::Type::PRIMARY);
++}
++
++HaikuScreen::~HaikuScreen() = default;
++
++const std::vector<display::Display>& HaikuScreen::GetAllDisplays() const {
++  return display_list_.displays();
++}
++
++display::Display HaikuScreen::GetPrimaryDisplay() const {
++  auto iter = display_list_.GetPrimaryDisplayIterator();
++  if (iter == display_list_.displays().end()) {
++    return display::Display::GetDefaultDisplay();
++  }
++  return *iter;
++}
++
++display::Display HaikuScreen::GetDisplayForAcceleratedWidget(
++    gfx::AcceleratedWidget widget) const {
++  return GetPrimaryDisplay();
++}
++
++gfx::Point HaikuScreen::GetCursorScreenPoint() const {
++  return gfx::Point(0, 0);
++}
++
++gfx::AcceleratedWidget HaikuScreen::GetAcceleratedWidgetAtScreenPoint(
++    const gfx::Point& point) const {
++  if (window_manager_) {
++    return window_manager_->GetAcceleratedWidgetAtScreenPoint(point);
++  }
++  return gfx::kNullAcceleratedWidget;
++}
++
++display::Display HaikuScreen::GetDisplayNearestPoint(
++    const gfx::Point& point) const {
++  return GetPrimaryDisplay();
++}
++
++display::Display HaikuScreen::GetDisplayMatching(
++    const gfx::Rect& match_rect) const {
++  const display::Display* matching =
++      display::FindDisplayWithBiggestIntersection(display_list_.displays(),
++                                                  match_rect);
++  return matching ? *matching : GetPrimaryDisplay();
++}
++
++bool HaikuScreen::IsScreenSaverActive() const {
++  return false;
++}
++
++base::TimeDelta HaikuScreen::CalculateIdleTime() const {
++  return base::Seconds(0);
++}
++
++void HaikuScreen::AddObserver(display::DisplayObserver* observer) {
++  display_list_.AddObserver(observer);
++}
++
++void HaikuScreen::RemoveObserver(display::DisplayObserver* observer) {
++  display_list_.RemoveObserver(observer);
++}
++
++}  // namespace ui
+diff --git a/ui/ozone/platform/haiku/haiku_screen.h b/ui/ozone/platform/haiku/haiku_screen.h
+new file mode 100644
+index 0000000000..07988db1b1
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_screen.h
+@@ -0,0 +1,51 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#ifndef UI_OZONE_PLATFORM_HAIKU_HAIKU_SCREEN_H_
++#define UI_OZONE_PLATFORM_HAIKU_HAIKU_SCREEN_H_
++
++#include <vector>
++
++#include "base/memory/raw_ptr.h"
++#include "ui/display/display_list.h"
++#include "ui/gfx/geometry/point.h"
++#include "ui/ozone/public/platform_screen.h"
++
++namespace ui {
++
++class HaikuWindowManager;
++
++class HaikuScreen : public PlatformScreen {
++ public:
++  explicit HaikuScreen(HaikuWindowManager* window_manager);
++
++  HaikuScreen(const HaikuScreen&) = delete;
++  HaikuScreen& operator=(const HaikuScreen&) = delete;
++
++  ~HaikuScreen() override;
++
++  // ui::PlatformScreen:
++  const std::vector<display::Display>& GetAllDisplays() const override;
++  display::Display GetPrimaryDisplay() const override;
++  display::Display GetDisplayForAcceleratedWidget(
++      gfx::AcceleratedWidget widget) const override;
++  gfx::Point GetCursorScreenPoint() const override;
++  gfx::AcceleratedWidget GetAcceleratedWidgetAtScreenPoint(
++      const gfx::Point& point) const override;
++  display::Display GetDisplayNearestPoint(
++      const gfx::Point& point) const override;
++  display::Display GetDisplayMatching(
++      const gfx::Rect& match_rect) const override;
++  bool IsScreenSaverActive() const override;
++  base::TimeDelta CalculateIdleTime() const override;
++  void AddObserver(display::DisplayObserver* observer) override;
++  void RemoveObserver(display::DisplayObserver* observer) override;
++
++ private:
++  raw_ptr<HaikuWindowManager> window_manager_;
++  display::DisplayList display_list_;
++};
++
++}  // namespace ui
++
++#endif  // UI_OZONE_PLATFORM_HAIKU_HAIKU_SCREEN_H_
+diff --git a/ui/ozone/platform/haiku/haiku_surface_factory.cc b/ui/ozone/platform/haiku/haiku_surface_factory.cc
+new file mode 100644
+index 0000000000..a1ceb727e3
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_surface_factory.cc
+@@ -0,0 +1,200 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#include "ui/ozone/platform/haiku/haiku_surface_factory.h"
++
++#include <memory>
++
++#include "base/memory/raw_ptr.h"
++#include "skia/ext/legacy_display_globals.h"
++#include "third_party/skia/include/core/SkCanvas.h"
++#include "third_party/skia/include/core/SkImageInfo.h"
++#include "third_party/skia/include/core/SkPixmap.h"
++#include "third_party/skia/include/core/SkSurface.h"
++#include "third_party/skia/include/core/SkSurfaceProps.h"
++#include "ui/gfx/native_pixmap.h"
++#include "ui/gfx/vsync_provider.h"
++#include "ui/gl/gl_surface_egl.h"
++#include "ui/ozone/common/egl_util.h"
++#include "ui/ozone/common/gl_ozone_egl.h"
++#include "ui/ozone/common/gl_surface_egl_readback.h"
++#include "ui/ozone/platform/haiku/haiku_capi.h"
++#include "ui/ozone/platform/haiku/haiku_window_manager.h"
++#include "ui/ozone/public/surface_ozone_canvas.h"
++
++namespace ui {
++
++namespace {
++
++class HaikuCanvasSurface : public SurfaceOzoneCanvas {
++ public:
++  HaikuCanvasSurface(HaikuWindowManager* window_manager,
++                     gfx::AcceleratedWidget widget)
++      : window_manager_(window_manager), widget_(widget) {}
++
++  ~HaikuCanvasSurface() override = default;
++
++  // SurfaceOzoneCanvas:
++  void ResizeCanvas(const gfx::Size& viewport_size, float scale) override {
++    SkSurfaceProps props = skia::LegacyDisplayGlobals::GetSkSurfaceProps();
++    surface_ = SkSurfaces::Raster(
++        SkImageInfo::Make(viewport_size.width(), viewport_size.height(),
++                          kBGRA_8888_SkColorType, kPremul_SkAlphaType),
++        &props);
++  }
++
++  SkCanvas* GetCanvas() override {
++    return surface_ ? surface_->getCanvas() : nullptr;
++  }
++
++  void PresentCanvas(const gfx::Rect& damage) override {
++    if (!surface_ || !window_manager_) {
++      return;
++    }
++    void* native_handle = window_manager_->GetNativeWindowHandle(widget_);
++    const auto& capi = HaikuCapi::Get();
++    if (!native_handle || !capi.available || !capi.present_pixels) {
++      return;
++    }
++
++    SkPixmap pixmap;
++    if (surface_->peekPixels(&pixmap) && pixmap.addr()) {
++      capi.present_pixels(native_handle,
++                           static_cast<const uint8_t*>(pixmap.addr()),
++                           static_cast<int>(pixmap.rowBytes()), pixmap.width(),
++                          pixmap.height(), damage.x(), damage.y(),
++                          damage.width(), damage.height());
++    }
++  }
++
++  std::unique_ptr<gfx::VSyncProvider> CreateVSyncProvider() override {
++    return nullptr;
++  }
++
++ private:
++  raw_ptr<HaikuWindowManager> window_manager_;
++  gfx::AcceleratedWidget widget_;
++  sk_sp<SkSurface> surface_;
++};
++
++class GLSurfaceEglReadbackHaiku : public GLSurfaceEglReadback {
++ public:
++  GLSurfaceEglReadbackHaiku(gl::GLDisplayEGL* display,
++                            HaikuWindowManager* window_manager,
++                            gfx::AcceleratedWidget widget)
++      : GLSurfaceEglReadback(display),
++        window_manager_(window_manager),
++        widget_(widget) {}
++
++  GLSurfaceEglReadbackHaiku(const GLSurfaceEglReadbackHaiku&) = delete;
++  GLSurfaceEglReadbackHaiku& operator=(const GLSurfaceEglReadbackHaiku&) =
++      delete;
++
++ private:
++  ~GLSurfaceEglReadbackHaiku() override = default;
++
++  // GLSurfaceEglReadback:
++  bool HandlePixels(uint8_t* pixels) override {
++    if (!pixels || !window_manager_) {
++      return true;
++    }
++    void* native_handle = window_manager_->GetNativeWindowHandle(widget_);
++    const auto& capi = HaikuCapi::Get();
++    if (!native_handle || !capi.available || !capi.present_pixels) {
++      return true;
++    }
++    const gfx::Size size = GetSize();
++    capi.present_pixels(native_handle, pixels, size.width() * 4, size.width(),
++                        size.height(), 0, 0, size.width(), size.height());
++    return true;
++  }
++
++  raw_ptr<HaikuWindowManager> window_manager_;
++  gfx::AcceleratedWidget widget_;
++};
++
++class GLOzoneEGLHaiku : public GLOzoneEGL {
++ public:
++  explicit GLOzoneEGLHaiku(HaikuWindowManager* window_manager)
++      : window_manager_(window_manager) {}
++
++  GLOzoneEGLHaiku(const GLOzoneEGLHaiku&) = delete;
++  GLOzoneEGLHaiku& operator=(const GLOzoneEGLHaiku&) = delete;
++
++  ~GLOzoneEGLHaiku() override = default;
++
++  // GLOzone:
++  scoped_refptr<gl::GLSurface> CreateViewGLSurface(
++      gl::GLDisplay* display,
++      gfx::AcceleratedWidget window) override {
++    return gl::InitializeGLSurface(
++        base::MakeRefCounted<GLSurfaceEglReadbackHaiku>(
++            display->GetAs<gl::GLDisplayEGL>(), window_manager_, window));
++  }
++
++  scoped_refptr<gl::GLSurface> CreateOffscreenGLSurface(
++      gl::GLDisplay* display,
++      const gfx::Size& size) override {
++    return gl::InitializeGLSurface(
++        base::MakeRefCounted<gl::PbufferGLSurfaceEGL>(
++            display->GetAs<gl::GLDisplayEGL>(), size));
++  }
++
++ protected:
++  // GLOzoneEGL:
++  gl::EGLDisplayPlatform GetNativeDisplay() override {
++    return gl::EGLDisplayPlatform(EGL_DEFAULT_DISPLAY);
++  }
++
++  bool LoadGLES2Bindings(
++      const gl::GLImplementationParts& implementation) override {
++    return LoadDefaultEGLGLES2Bindings(implementation);
++  }
++
++ private:
++  raw_ptr<HaikuWindowManager> window_manager_;
++};
++
++}  // namespace
++
++HaikuSurfaceFactory::HaikuSurfaceFactory(HaikuWindowManager* window_manager)
++    : window_manager_(window_manager),
++      gl_ozone_egl_(std::make_unique<GLOzoneEGLHaiku>(window_manager)) {}
++
++HaikuSurfaceFactory::~HaikuSurfaceFactory() = default;
++
++std::vector<gl::GLImplementationParts>
++HaikuSurfaceFactory::GetAllowedGLImplementations() {
++  return std::vector<gl::GLImplementationParts>{
++      gl::GLImplementationParts(gl::kGLImplementationEGLANGLE),
++      gl::GLImplementationParts(gl::kGLImplementationEGLGLES2),
++  };
++}
++
++GLOzone* HaikuSurfaceFactory::GetGLOzone(
++    const gl::GLImplementationParts& implementation) {
++  switch (implementation.gl) {
++    case gl::kGLImplementationEGLGLES2:
++    case gl::kGLImplementationEGLANGLE:
++      return gl_ozone_egl_.get();
++    default:
++      return nullptr;
++  }
++}
++
++std::unique_ptr<SurfaceOzoneCanvas> HaikuSurfaceFactory::CreateCanvasForWidget(
++    gfx::AcceleratedWidget widget) {
++  return std::make_unique<HaikuCanvasSurface>(window_manager_, widget);
++}
++
++scoped_refptr<gfx::NativePixmap> HaikuSurfaceFactory::CreateNativePixmap(
++    gfx::AcceleratedWidget widget,
++    gpu::VulkanDeviceQueue* device_queue,
++    gfx::Size size,
++    viz::SharedImageFormat format,
++    gfx::BufferUsage usage,
++    std::optional<gfx::Size> framebuffer_size) {
++  return nullptr;
++}
++
++}  // namespace ui
+diff --git a/ui/ozone/platform/haiku/haiku_surface_factory.h b/ui/ozone/platform/haiku/haiku_surface_factory.h
+new file mode 100644
+index 0000000000..6f57bdf5bc
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_surface_factory.h
+@@ -0,0 +1,47 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#ifndef UI_OZONE_PLATFORM_HAIKU_HAIKU_SURFACE_FACTORY_H_
++#define UI_OZONE_PLATFORM_HAIKU_HAIKU_SURFACE_FACTORY_H_
++
++#include <memory>
++#include <vector>
++
++#include "base/memory/raw_ptr.h"
++#include "ui/ozone/public/gl_ozone.h"
++#include "ui/ozone/public/surface_factory_ozone.h"
++
++namespace ui {
++
++class HaikuWindowManager;
++
++class HaikuSurfaceFactory : public SurfaceFactoryOzone {
++ public:
++  explicit HaikuSurfaceFactory(HaikuWindowManager* window_manager);
++
++  HaikuSurfaceFactory(const HaikuSurfaceFactory&) = delete;
++  HaikuSurfaceFactory& operator=(const HaikuSurfaceFactory&) = delete;
++
++  ~HaikuSurfaceFactory() override;
++
++  // SurfaceFactoryOzone:
++  std::vector<gl::GLImplementationParts> GetAllowedGLImplementations() override;
++  GLOzone* GetGLOzone(const gl::GLImplementationParts& implementation) override;
++  std::unique_ptr<SurfaceOzoneCanvas> CreateCanvasForWidget(
++      gfx::AcceleratedWidget widget) override;
++  scoped_refptr<gfx::NativePixmap> CreateNativePixmap(
++      gfx::AcceleratedWidget widget,
++      gpu::VulkanDeviceQueue* device_queue,
++      gfx::Size size,
++      viz::SharedImageFormat format,
++      gfx::BufferUsage usage,
++      std::optional<gfx::Size> framebuffer_size) override;
++
++ private:
++  raw_ptr<HaikuWindowManager> window_manager_;
++  std::unique_ptr<GLOzone> gl_ozone_egl_;
++};
++
++}  // namespace ui
++
++#endif  // UI_OZONE_PLATFORM_HAIKU_HAIKU_SURFACE_FACTORY_H_
+diff --git a/ui/ozone/platform/haiku/haiku_window.cc b/ui/ozone/platform/haiku/haiku_window.cc
+new file mode 100644
+index 0000000000..1812f467bb
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_window.cc
+@@ -0,0 +1,566 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#include "ui/ozone/platform/haiku/haiku_window.h"
++
++#include "base/check_op.h"
++#include "base/logging.h"
++#include "base/strings/utf_string_conversions.h"
++#include "base/task/current_thread.h"
++#include "base/time/time.h"
++#include "ui/base/cursor/platform_cursor.h"
++#include "ui/display/screen.h"
++#include "ui/display/types/display_constants.h"
++#include "ui/events/event.h"
++#include "ui/events/event_constants.h"
++#include "ui/events/keycodes/dom/dom_code.h"
++#include "ui/events/keycodes/dom/dom_key.h"
++#include "ui/events/keycodes/keyboard_codes_posix.h"
++#include "ui/events/types/event_type.h"
++#include "ui/ozone/platform/haiku/haiku_window_manager.h"
++
++namespace ui {
++
++namespace {
++
++int ConvertHaikuModifiers(uint32_t haiku_mods, uint32_t buttons) {
++  int flags = EF_NONE;
++  // Haiku modifiers from InterfaceDefs.h:
++  // B_SHIFT_KEY = 0x01, B_COMMAND_KEY = 0x02, B_CONTROL_KEY = 0x04,
++  // B_CAPS_LOCK = 0x08, B_OPTION_KEY = 0x40
++  if (haiku_mods & 0x01) {
++    flags |= EF_SHIFT_DOWN;
++  }
++  if (haiku_mods & 0x06) {
++    flags |= EF_CONTROL_DOWN;
++  }
++  if (haiku_mods & 0x40) {
++    flags |= EF_ALT_DOWN;
++  }
++  if (haiku_mods & 0x08) {
++    flags |= EF_CAPS_LOCK_ON;
++  }
++  if (buttons & 0x01) {
++    flags |= EF_LEFT_MOUSE_BUTTON;
++  }
++  if (buttons & 0x02) {
++    flags |= EF_RIGHT_MOUSE_BUTTON;
++  }
++  if (buttons & 0x04) {
++    flags |= EF_MIDDLE_MOUSE_BUTTON;
++  }
++  return flags;
++}
++
++KeyboardCode ConvertHaikuKeyToKeyboardCode(int32_t raw_char,
++                                           int32_t haiku_key,
++                                           const char* utf8) {
++  // Control-modified UTF-8 contains control bytes (Ctrl+L is 0x0c).
++  // Shortcuts need the original key; text insertion still uses ev.utf8.
++  unsigned char ch = raw_char > 0 && raw_char < 0x80
++                         ? static_cast<unsigned char>(raw_char)
++                         : (utf8 && utf8[0]
++                                ? static_cast<unsigned char>(utf8[0])
++                                : 0);
++  switch (ch) {
++    case 0x08:
++      return VKEY_BACK;
++    case 0x09:
++      return VKEY_TAB;
++    case 0x0a:
++    case 0x0d:
++      return VKEY_RETURN;
++    case 0x1b:
++      return VKEY_ESCAPE;
++    case 0x20:
++      return VKEY_SPACE;
++    case 0x7f:
++      return VKEY_DELETE;
++    default:
++      break;
++  }
++
++  // Haiku navigation key raw_char codes (InterfaceDefs.h):
++  // B_HOME=0x01, B_END=0x04, B_INSERT=0x05, B_PAGE_UP=0x0b, B_PAGE_DOWN=0x0c,
++  // B_LEFT_ARROW=0x1c, B_RIGHT_ARROW=0x1d, B_UP_ARROW=0x1e, B_DOWN_ARROW=0x1f
++  switch (raw_char) {
++    case 0x01:
++      return VKEY_HOME;
++    case 0x04:
++      return VKEY_END;
++    case 0x05:
++      return VKEY_INSERT;
++    case 0x0b:
++      return VKEY_PRIOR;
++    case 0x0c:
++      return VKEY_NEXT;
++    case 0x1c:
++      return VKEY_LEFT;
++    case 0x1d:
++      return VKEY_RIGHT;
++    case 0x1e:
++      return VKEY_UP;
++    case 0x1f:
++      return VKEY_DOWN;
++    default:
++      break;
++  }
++
++  if (ch >= 'a' && ch <= 'z') {
++    return static_cast<KeyboardCode>(VKEY_A + (ch - 'a'));
++  }
++  if (ch >= 'A' && ch <= 'Z') {
++    return static_cast<KeyboardCode>(VKEY_A + (ch - 'A'));
++  }
++  if (ch >= '0' && ch <= '9') {
++    return static_cast<KeyboardCode>(VKEY_0 + (ch - '0'));
++  }
++  switch (ch) {
++    case '-':
++    case '_':
++      return VKEY_OEM_MINUS;
++    case '=':
++    case '+':
++      return VKEY_OEM_PLUS;
++    case '[':
++    case '{':
++      return VKEY_OEM_4;
++    case ']':
++    case '}':
++      return VKEY_OEM_6;
++    case '\\':
++    case '|':
++      return VKEY_OEM_5;
++    case ';':
++    case ':':
++      return VKEY_OEM_1;
++    case '\'':
++    case '"':
++      return VKEY_OEM_7;
++    case ',':
++    case '<':
++      return VKEY_OEM_COMMA;
++    case '.':
++    case '>':
++      return VKEY_OEM_PERIOD;
++    case '/':
++    case '?':
++      return VKEY_OEM_2;
++    case '`':
++    case '~':
++      return VKEY_OEM_3;
++    default:
++      break;
++  }
++
++  return VKEY_UNKNOWN;
++}
++
++}  // namespace
++
++HaikuWindow::HaikuWindow(PlatformWindowDelegate* delegate,
++                         HaikuWindowManager* manager,
++                         const gfx::Rect& bounds, bool is_tooltip)
++    : delegate_(delegate),
++      manager_(manager),
++      bounds_(bounds),
++      fd_watch_controller_(FROM_HERE) {
++  is_tooltip_ = is_tooltip;
++  if (bounds_.width() <= 0 || bounds_.height() <= 0) {
++    bounds_.SetRect(60, 40, 1024, 680);
++  } else if (bounds_.x() == 0 && bounds_.y() == 0) {
++    bounds_.set_origin(gfx::Point(60, 40));
++  }
++  last_mouse_location_.SetPoint(bounds_.width() / 2.0f,
++                                bounds_.height() / 2.0f);
++
++  const auto& capi = HaikuCapi::Get();
++  if (capi.available) {
++    native_handle_ =
++        capi.create_window(bounds_.x(), bounds_.y(), bounds_.width(),
++                           bounds_.height(), "Chromium", &event_fd_);
++    if (native_handle_)
++      CHECK_EQ(capi.set_window_type(native_handle_, is_tooltip_ ? 1 : 0), 0);
++  }
++
++  widget_ = manager_->AddWindow(this, native_handle_);
++
++  if (event_fd_ >= 0 && base::CurrentUIThread::IsSet()) {
++    base::CurrentUIThread::Get()->WatchFileDescriptor(
++        event_fd_, true, base::MessagePumpForUI::WATCH_READ,
++        &fd_watch_controller_, this);
++  }
++
++  delegate_->OnAcceleratedWidgetAvailable(widget_);
++}
++
++HaikuWindow::~HaikuWindow() {
++  fd_watch_controller_.StopWatchingFileDescriptor();
++  manager_->RemoveWindow(widget_, this);
++  const auto& capi = HaikuCapi::Get();
++  if (capi.available && native_handle_) {
++    capi.destroy_window(native_handle_);
++    native_handle_ = nullptr;
++  }
++}
++
++void HaikuWindow::Show(bool inactive) {
++  visible_ = true;
++  const auto& capi = HaikuCapi::Get();
++  if (capi.available && native_handle_) {
++    capi.show_window(native_handle_);
++    if (!inactive && !is_tooltip_ && capi.activate_window) {
++      capi.activate_window(native_handle_);
++    }
++  }
++}
++
++void HaikuWindow::Hide() {
++  visible_ = false;
++  const auto& capi = HaikuCapi::Get();
++  if (capi.available && native_handle_) {
++    capi.hide_window(native_handle_);
++  }
++}
++
++void HaikuWindow::Close() {
++  delegate_->OnClosed();
++}
++
++bool HaikuWindow::IsVisible() const {
++  return visible_;
++}
++
++void HaikuWindow::PrepareForShutdown() {
++  fd_watch_controller_.StopWatchingFileDescriptor();
++}
++
++void HaikuWindow::SetBoundsInPixels(const gfx::Rect& bounds) {
++  const auto& capi = HaikuCapi::Get();
++  if (capi.available && native_handle_) {
++    capi.set_window_bounds(native_handle_, bounds.x(), bounds.y(),
++                           bounds.width(), bounds.height());
++  }
++  UpdateBounds(bounds);
++}
++
++gfx::Rect HaikuWindow::GetBoundsInPixels() const {
++  return bounds_;
++}
++
++void HaikuWindow::SetBoundsInDIP(const gfx::Rect& bounds) {
++  SetBoundsInPixels(delegate_->ConvertRectToPixels(bounds));
++}
++
++gfx::Rect HaikuWindow::GetBoundsInDIP() const {
++  return delegate_->ConvertRectToDIP(bounds_);
++}
++
++void HaikuWindow::SetTitle(const std::u16string& title) {
++  const auto& capi = HaikuCapi::Get();
++  if (capi.available && native_handle_) {
++    std::string utf8_title = base::UTF16ToUTF8(title);
++    capi.set_window_title(native_handle_, utf8_title.c_str());
++  }
++}
++
++void HaikuWindow::SetCapture() {
++  has_capture_ = true;
++}
++
++void HaikuWindow::ReleaseCapture() {
++  has_capture_ = false;
++}
++
++bool HaikuWindow::HasCapture() const {
++  return has_capture_;
++}
++
++void HaikuWindow::SetFullscreen(bool fullscreen, int64_t target_display_id) {
++  auto weak_ptr = weak_ptr_factory_.GetWeakPtr();
++  if (fullscreen) {
++    if (window_state_ != PlatformWindowState::kMaximized &&
++        window_state_ != PlatformWindowState::kFullScreen) {
++      restored_bounds_ = bounds_;
++    }
++    ZoomWindowBounds();
++    if (!weak_ptr) {
++      return;
++    }
++    UpdateWindowState(PlatformWindowState::kFullScreen);
++  } else {
++    if (window_state_ != PlatformWindowState::kFullScreen) {
++      return;
++    }
++    RestoreWindowBounds();
++    if (!weak_ptr) {
++      return;
++    }
++    UpdateWindowState(PlatformWindowState::kNormal);
++  }
++}
++
++void HaikuWindow::Maximize() {
++  if (window_state_ != PlatformWindowState::kMaximized &&
++      window_state_ != PlatformWindowState::kFullScreen) {
++    auto weak_ptr = weak_ptr_factory_.GetWeakPtr();
++    restored_bounds_ = bounds_;
++    ZoomWindowBounds();
++    if (!weak_ptr) {
++      return;
++    }
++    UpdateWindowState(PlatformWindowState::kMaximized);
++  }
++}
++
++void HaikuWindow::Minimize() {
++  if (window_state_ != PlatformWindowState::kMinimized) {
++    const auto& capi = HaikuCapi::Get();
++    if (capi.available && native_handle_ && capi.minimize_window) {
++      capi.minimize_window(native_handle_, 1);
++    }
++    UpdateWindowState(PlatformWindowState::kMinimized);
++  }
++}
++
++void HaikuWindow::Restore() {
++  if (window_state_ != PlatformWindowState::kNormal) {
++    const auto& capi = HaikuCapi::Get();
++    if (capi.available && native_handle_ && capi.minimize_window) {
++      capi.minimize_window(native_handle_, 0);
++    }
++    auto weak_ptr = weak_ptr_factory_.GetWeakPtr();
++    RestoreWindowBounds();
++    if (!weak_ptr) {
++      return;
++    }
++    UpdateWindowState(PlatformWindowState::kNormal);
++  }
++}
++
++PlatformWindowState HaikuWindow::GetPlatformWindowState() const {
++  return window_state_;
++}
++
++void HaikuWindow::Activate() {
++  if (is_tooltip_)
++    return;
++  const auto& capi = HaikuCapi::Get();
++  if (capi.available && native_handle_ && capi.activate_window) {
++    capi.activate_window(native_handle_);
++  }
++  delegate_->OnActivationChanged(true);
++}
++
++void HaikuWindow::Deactivate() {
++  delegate_->OnActivationChanged(false);
++}
++
++void HaikuWindow::SetUseNativeFrame(bool use_native_frame) {
++  use_native_frame_ = true;
++}
++
++bool HaikuWindow::ShouldUseNativeFrame() const {
++  return true;
++}
++
++void HaikuWindow::SetCursor(scoped_refptr<PlatformCursor> cursor) {}
++
++void HaikuWindow::MoveCursorTo(const gfx::Point& location) {}
++
++void HaikuWindow::ConfineCursorToBounds(const gfx::Rect& bounds) {}
++
++void HaikuWindow::SetRestoredBoundsInDIP(const gfx::Rect& bounds) {
++  restored_bounds_ = delegate_->ConvertRectToPixels(bounds);
++}
++
++gfx::Rect HaikuWindow::GetRestoredBoundsInDIP() const {
++  return delegate_->ConvertRectToDIP(restored_bounds_.value_or(bounds_));
++}
++
++void HaikuWindow::SetWindowIcons(const gfx::ImageSkia& window_icon,
++                                 const gfx::ImageSkia& app_icon) {}
++
++void HaikuWindow::SizeConstraintsChanged() {}
++
++void HaikuWindow::OnFileCanReadWithoutBlocking(int fd) {
++  const auto& capi = HaikuCapi::Get();
++  if (!capi.available || !native_handle_) {
++    return;
++  }
++
++  auto weak_ptr = weak_ptr_factory_.GetWeakPtr();
++  HaikuOzoneEvent ev = {};
++  while (capi.poll_event(native_handle_, &ev)) {
++    DispatchHaikuEvent(ev);
++    if (!weak_ptr) {
++      return;
++    }
++  }
++}
++
++void HaikuWindow::OnFileCanWriteWithoutBlocking(int fd) {}
++
++void HaikuWindow::DispatchHaikuEvent(const HaikuOzoneEvent& ev) {
++  base::TimeTicks now = base::TimeTicks::Now();
++
++  switch (ev.type) {
++    case HAIKU_OZONE_EVENT_MOUSE_DOWN:
++    case HAIKU_OZONE_EVENT_MOUSE_UP:
++    case HAIKU_OZONE_EVENT_MOUSE_MOVE: {
++      EventType type = EventType::kMouseMoved;
++      if (ev.type == HAIKU_OZONE_EVENT_MOUSE_DOWN) {
++        type = EventType::kMousePressed;
++      } else if (ev.type == HAIKU_OZONE_EVENT_MOUSE_UP) {
++        type = EventType::kMouseReleased;
++      } else if (ev.buttons != 0) {
++        type = EventType::kMouseDragged;
++      }
++
++      int flags = ConvertHaikuModifiers(ev.modifiers, ev.buttons);
++      int changed_button_flags = EF_NONE;
++      if (ev.type == HAIKU_OZONE_EVENT_MOUSE_DOWN ||
++          ev.type == HAIKU_OZONE_EVENT_MOUSE_UP) {
++        if (ev.buttons & 0x01) {
++          changed_button_flags = EF_LEFT_MOUSE_BUTTON;
++        } else if (ev.buttons & 0x02) {
++          changed_button_flags = EF_RIGHT_MOUSE_BUTTON;
++        } else if (ev.buttons & 0x04) {
++          changed_button_flags = EF_MIDDLE_MOUSE_BUTTON;
++        } else {
++          changed_button_flags = EF_LEFT_MOUSE_BUTTON;
++        }
++        flags |= changed_button_flags;
++      }
++
++      gfx::PointF loc(ev.x, ev.y);
++      last_mouse_location_ = loc;
++      gfx::PointF root_loc(bounds_.x() + ev.x, bounds_.y() + ev.y);
++      MouseEvent mouse_ev(type, loc, root_loc, now, flags,
++                          changed_button_flags);
++      if (ev.type == HAIKU_OZONE_EVENT_MOUSE_DOWN ||
++          ev.type == HAIKU_OZONE_EVENT_MOUSE_UP) {
++        mouse_ev.SetClickCount(ev.clicks > 0 ? ev.clicks : 1);
++      }
++      delegate_->DispatchEvent(&mouse_ev);
++      break;
++    }
++
++    case HAIKU_OZONE_EVENT_MOUSE_WHEEL: {
++      int flags = ConvertHaikuModifiers(ev.modifiers, ev.buttons);
++      gfx::PointF loc(ev.x, ev.y);
++      if (loc.x() <= 0.0f && loc.y() <= 0.0f) {
++        loc = last_mouse_location_;
++      } else {
++        last_mouse_location_ = loc;
++      }
++      gfx::PointF root_loc(bounds_.x() + loc.x(), bounds_.y() + loc.y());
++      int dx = static_cast<int>(ev.delta_x);
++      int dy = static_cast<int>(ev.delta_y);
++      if (dx != 0 && dx > -MouseWheelEvent::kWheelDelta &&
++          dx < MouseWheelEvent::kWheelDelta) {
++        dx = (dx > 0) ? MouseWheelEvent::kWheelDelta
++                      : -MouseWheelEvent::kWheelDelta;
++      }
++      if (dy != 0 && dy > -MouseWheelEvent::kWheelDelta &&
++          dy < MouseWheelEvent::kWheelDelta) {
++        dy = (dy > 0) ? MouseWheelEvent::kWheelDelta
++                      : -MouseWheelEvent::kWheelDelta;
++      }
++      gfx::Vector2d offset(dx, dy);
++      gfx::Vector2d tick_120ths(
++          (dx * 120) / MouseWheelEvent::kWheelDelta,
++          (dy * 120) / MouseWheelEvent::kWheelDelta);
++      MouseWheelEvent wheel_ev(offset, loc, root_loc, now, flags, EF_NONE,
++                               tick_120ths);
++      delegate_->DispatchEvent(&wheel_ev);
++      break;
++    }
++
++    case HAIKU_OZONE_EVENT_KEY_DOWN:
++    case HAIKU_OZONE_EVENT_KEY_UP: {
++      EventType type = (ev.type == HAIKU_OZONE_EVENT_KEY_DOWN)
++                           ? EventType::kKeyPressed
++                           : EventType::kKeyReleased;
++      int flags = ConvertHaikuModifiers(ev.modifiers, 0);
++      KeyboardCode key_code =
++          ConvertHaikuKeyToKeyboardCode(ev.raw_char, ev.key_code, ev.utf8);
++      if (key_code != VKEY_UNKNOWN) {
++        if (type == EventType::kKeyPressed && ev.utf8[0] >= 0x20 &&
++            ev.utf8[0] != 0x7f && (flags & EF_CONTROL_DOWN) == 0) {
++          std::u16string u16 = base::UTF8ToUTF16(std::string_view(ev.utf8));
++          if (!u16.empty()) {
++            KeyEvent key_ev(type, key_code, DomCode::NONE, flags,
++                            DomKey::FromCharacter(u16[0]), now);
++            delegate_->DispatchEvent(&key_ev);
++            break;
++          }
++        }
++        KeyEvent key_ev(type, key_code, flags, now);
++        delegate_->DispatchEvent(&key_ev);
++      }
++      break;
++    }
++
++    case HAIKU_OZONE_EVENT_WINDOW_MOVED: {
++      gfx::Rect new_bounds(static_cast<int>(ev.x), static_cast<int>(ev.y),
++                           bounds_.width(), bounds_.height());
++      UpdateBounds(new_bounds);
++      break;
++    }
++
++    case HAIKU_OZONE_EVENT_WINDOW_RESIZED: {
++      if (ev.width > 0 && ev.height > 0) {
++        gfx::Rect new_bounds(bounds_.x(), bounds_.y(), ev.width, ev.height);
++        UpdateBounds(new_bounds);
++      }
++      break;
++    }
++
++    case HAIKU_OZONE_EVENT_WINDOW_ACTIVATED: {
++      delegate_->OnActivationChanged(ev.active != 0);
++      break;
++    }
++
++    case HAIKU_OZONE_EVENT_WINDOW_CLOSE_REQUEST: {
++      delegate_->OnCloseRequest();
++      break;
++    }
++
++    default:
++      break;
++  }
++}
++
++void HaikuWindow::ZoomWindowBounds() {
++  if (auto* screen = display::Screen::Get()) {
++    gfx::Rect zoomed_bounds =
++        screen->GetDisplayMatching(bounds_).work_area();
++    SetBoundsInPixels(delegate_->ConvertRectToPixels(zoomed_bounds));
++  }
++}
++
++void HaikuWindow::RestoreWindowBounds() {
++  if (restored_bounds_) {
++    gfx::Rect restored = *restored_bounds_;
++    restored_bounds_.reset();
++    SetBoundsInPixels(restored);
++  }
++}
++
++void HaikuWindow::UpdateBounds(const gfx::Rect& bounds) {
++  bool origin_changed = bounds_.origin() != bounds.origin();
++  bounds_ = bounds;
++  delegate_->OnBoundsChanged({origin_changed});
++}
++
++void HaikuWindow::UpdateWindowState(PlatformWindowState new_window_state) {
++  if (window_state_ == new_window_state) {
++    return;
++  }
++  auto old_window_state = window_state_;
++  window_state_ = new_window_state;
++  delegate_->OnWindowStateChanged(old_window_state, new_window_state);
++}
++
++}  // namespace ui
+diff --git a/ui/ozone/platform/haiku/haiku_window.h b/ui/ozone/platform/haiku/haiku_window.h
+new file mode 100644
+index 0000000000..d70478b614
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_window.h
+@@ -0,0 +1,107 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#ifndef UI_OZONE_PLATFORM_HAIKU_HAIKU_WINDOW_H_
++#define UI_OZONE_PLATFORM_HAIKU_HAIKU_WINDOW_H_
++
++#include <optional>
++#include <string>
++
++#include "base/memory/raw_ptr.h"
++#include "base/memory/scoped_refptr.h"
++#include "base/memory/weak_ptr.h"
++#include "base/message_loop/message_pump_for_ui.h"
++#include "ui/gfx/geometry/point.h"
++#include "ui/gfx/geometry/point_f.h"
++#include "ui/gfx/geometry/rect.h"
++#include "ui/gfx/image/image_skia.h"
++#include "ui/gfx/native_ui_types.h"
++#include "ui/ozone/platform/haiku/haiku_capi.h"
++#include "ui/platform_window/platform_window.h"
++#include "ui/platform_window/platform_window_delegate.h"
++
++namespace ui {
++
++class HaikuWindowManager;
++
++class HaikuWindow : public PlatformWindow,
++                    public base::MessagePumpForUI::FdWatcher {
++ public:
++  HaikuWindow(PlatformWindowDelegate* delegate,
++              HaikuWindowManager* manager,
++              const gfx::Rect& bounds, bool is_tooltip);
++
++  HaikuWindow(const HaikuWindow&) = delete;
++  HaikuWindow& operator=(const HaikuWindow&) = delete;
++
++  ~HaikuWindow() override;
++
++  // PlatformWindow:
++  void Show(bool inactive) override;
++  void Hide() override;
++  void Close() override;
++  bool IsVisible() const override;
++  void PrepareForShutdown() override;
++  void SetBoundsInPixels(const gfx::Rect& bounds) override;
++  gfx::Rect GetBoundsInPixels() const override;
++  void SetBoundsInDIP(const gfx::Rect& bounds) override;
++  gfx::Rect GetBoundsInDIP() const override;
++  void SetTitle(const std::u16string& title) override;
++  void SetCapture() override;
++  void ReleaseCapture() override;
++  void SetFullscreen(bool fullscreen, int64_t target_display_id) override;
++  bool HasCapture() const override;
++  void Maximize() override;
++  void Minimize() override;
++  void Restore() override;
++  PlatformWindowState GetPlatformWindowState() const override;
++  void Activate() override;
++  void Deactivate() override;
++  void SetUseNativeFrame(bool use_native_frame) override;
++  bool ShouldUseNativeFrame() const override;
++  void SetCursor(scoped_refptr<PlatformCursor> cursor) override;
++  void MoveCursorTo(const gfx::Point& location) override;
++  void ConfineCursorToBounds(const gfx::Rect& bounds) override;
++  void SetRestoredBoundsInDIP(const gfx::Rect& bounds) override;
++  gfx::Rect GetRestoredBoundsInDIP() const override;
++  void SetWindowIcons(const gfx::ImageSkia& window_icon,
++                      const gfx::ImageSkia& app_icon) override;
++  void SizeConstraintsChanged() override;
++
++  // base::MessagePumpForUI::FdWatcher:
++  void OnFileCanReadWithoutBlocking(int fd) override;
++  void OnFileCanWriteWithoutBlocking(int fd) override;
++
++  gfx::AcceleratedWidget widget() const { return widget_; }
++  void* native_handle() const { return native_handle_; }
++
++ private:
++  void DispatchHaikuEvent(const HaikuOzoneEvent& ev);
++  void UpdateBounds(const gfx::Rect& bounds);
++  void UpdateWindowState(PlatformWindowState new_window_state);
++  void ZoomWindowBounds();
++  void RestoreWindowBounds();
++
++  raw_ptr<PlatformWindowDelegate> delegate_ = nullptr;
++  raw_ptr<HaikuWindowManager> manager_ = nullptr;
++  gfx::Rect bounds_;
++  gfx::AcceleratedWidget widget_ = gfx::kNullAcceleratedWidget;
++
++  raw_ptr<void> native_handle_ = nullptr;
++  int event_fd_ = -1;
++  base::MessagePumpForUI::FdWatchController fd_watch_controller_;
++
++  bool visible_ = false;
++  bool is_tooltip_ = false;
++  bool has_capture_ = false;
++  bool use_native_frame_ = true;
++  gfx::PointF last_mouse_location_;
++  std::optional<gfx::Rect> restored_bounds_;
++  PlatformWindowState window_state_ = PlatformWindowState::kNormal;
++
++  base::WeakPtrFactory<HaikuWindow> weak_ptr_factory_{this};
++};
++
++}  // namespace ui
++
++#endif  // UI_OZONE_PLATFORM_HAIKU_HAIKU_WINDOW_H_
+diff --git a/ui/ozone/platform/haiku/haiku_window_manager.cc b/ui/ozone/platform/haiku/haiku_window_manager.cc
+new file mode 100644
+index 0000000000..d6cdb1f8bc
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_window_manager.cc
+@@ -0,0 +1,56 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#include "ui/ozone/platform/haiku/haiku_window_manager.h"
++
++#include "ui/gfx/geometry/rect.h"
++#include "ui/ozone/platform/haiku/haiku_window.h"
++
++namespace ui {
++
++HaikuWindowManager::HaikuWindowManager() = default;
++
++HaikuWindowManager::~HaikuWindowManager() = default;
++
++gfx::AcceleratedWidget HaikuWindowManager::AddWindow(HaikuWindow* window,
++                                                     void* native_handle) {
++  base::AutoLock auto_lock(lock_);
++  gfx::AcceleratedWidget widget =
++      static_cast<gfx::AcceleratedWidget>(next_widget_id_++);
++  windows_[widget] = window;
++  native_handles_[widget] = native_handle;
++  return widget;
++}
++
++void HaikuWindowManager::RemoveWindow(gfx::AcceleratedWidget widget,
++                                      HaikuWindow* window) {
++  base::AutoLock auto_lock(lock_);
++  windows_.erase(widget);
++  native_handles_.erase(widget);
++}
++
++HaikuWindow* HaikuWindowManager::GetWindow(gfx::AcceleratedWidget widget) {
++  base::AutoLock auto_lock(lock_);
++  auto it = windows_.find(widget);
++  return it != windows_.end() ? it->second : nullptr;
++}
++
++void* HaikuWindowManager::GetNativeWindowHandle(gfx::AcceleratedWidget widget) {
++  base::AutoLock auto_lock(lock_);
++  auto it = native_handles_.find(widget);
++  return it != native_handles_.end() ? it->second : nullptr;
++}
++
++gfx::AcceleratedWidget HaikuWindowManager::GetAcceleratedWidgetAtScreenPoint(
++    const gfx::Point& point) {
++  base::AutoLock auto_lock(lock_);
++  for (const auto& pair : windows_) {
++    const HaikuWindow* window = pair.second;
++    if (window && window->GetBoundsInPixels().Contains(point)) {
++      return pair.first;
++    }
++  }
++  return gfx::kNullAcceleratedWidget;
++}
++
++}  // namespace ui
+diff --git a/ui/ozone/platform/haiku/haiku_window_manager.h b/ui/ozone/platform/haiku/haiku_window_manager.h
+new file mode 100644
+index 0000000000..718dab04a8
+--- /dev/null
++++ b/ui/ozone/platform/haiku/haiku_window_manager.h
+@@ -0,0 +1,45 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#ifndef UI_OZONE_PLATFORM_HAIKU_HAIKU_WINDOW_MANAGER_H_
++#define UI_OZONE_PLATFORM_HAIKU_HAIKU_WINDOW_MANAGER_H_
++
++#include <stdint.h>
++#include <map>
++
++#include "base/synchronization/lock.h"
++#include "ui/gfx/geometry/point.h"
++#include "ui/gfx/native_ui_types.h"
++
++namespace ui {
++
++class HaikuWindow;
++
++class HaikuWindowManager {
++ public:
++  HaikuWindowManager();
++
++  HaikuWindowManager(const HaikuWindowManager&) = delete;
++  HaikuWindowManager& operator=(const HaikuWindowManager&) = delete;
++
++  ~HaikuWindowManager();
++
++  gfx::AcceleratedWidget AddWindow(HaikuWindow* window, void* native_handle);
++  void RemoveWindow(gfx::AcceleratedWidget widget, HaikuWindow* window);
++
++  HaikuWindow* GetWindow(gfx::AcceleratedWidget widget);
++  void* GetNativeWindowHandle(gfx::AcceleratedWidget widget);
++
++  gfx::AcceleratedWidget GetAcceleratedWidgetAtScreenPoint(
++      const gfx::Point& point);
++
++ private:
++  base::Lock lock_;
++  int32_t next_widget_id_ = 1;
++  std::map<gfx::AcceleratedWidget, HaikuWindow*> windows_;
++  std::map<gfx::AcceleratedWidget, void*> native_handles_;
++};
++
++}  // namespace ui
++
++#endif  // UI_OZONE_PLATFORM_HAIKU_HAIKU_WINDOW_MANAGER_H_
+diff --git a/ui/ozone/platform/haiku/ozone_platform_haiku.cc b/ui/ozone/platform/haiku/ozone_platform_haiku.cc
+new file mode 100644
+index 0000000000..0e1fa0b55c
+--- /dev/null
++++ b/ui/ozone/platform/haiku/ozone_platform_haiku.cc
+@@ -0,0 +1,167 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#include "ui/ozone/platform/haiku/ozone_platform_haiku.h"
++
++#include <memory>
++
++#include "base/command_line.h"
++#include "base/no_destructor.h"
++#include "build/build_config.h"
++#include "build/chromecast_buildflags.h"
++#include "ui/base/cursor/cursor_factory.h"
++#include "ui/base/ime/input_method_minimal.h"
++#include "ui/display/types/native_display_delegate.h"
++#include "ui/events/ozone/layout/keyboard_layout_engine_manager.h"
++#include "ui/events/ozone/layout/stub/stub_keyboard_layout_engine.h"
++#include "ui/events/platform/platform_event_source.h"
++#include "ui/ozone/common/bitmap_cursor_factory.h"
++#include "ui/ozone/common/stub_overlay_manager.h"
++#include "ui/ozone/platform/haiku/haiku_capi.h"
++#include "ui/ozone/platform/haiku/haiku_screen.h"
++#include "ui/ozone/platform/haiku/haiku_surface_factory.h"
++#include "ui/ozone/platform/haiku/haiku_window.h"
++#include "ui/ozone/platform/haiku/haiku_window_manager.h"
++#include "ui/ozone/public/gpu_platform_support_host.h"
++#include "ui/ozone/public/input_controller.h"
++#include "ui/ozone/public/stub_input_controller.h"
++#include "ui/ozone/public/system_input_injector.h"
++#include "ui/platform_window/platform_window_init_properties.h"
++
++namespace ui {
++
++namespace {
++
++class HaikuPlatformEventSource : public PlatformEventSource {
++ public:
++  HaikuPlatformEventSource() = default;
++  HaikuPlatformEventSource(const HaikuPlatformEventSource&) = delete;
++  HaikuPlatformEventSource& operator=(const HaikuPlatformEventSource&) = delete;
++  ~HaikuPlatformEventSource() override = default;
++};
++
++class OzonePlatformHaikuImpl : public OzonePlatform {
++ public:
++  OzonePlatformHaikuImpl() = default;
++
++  OzonePlatformHaikuImpl(const OzonePlatformHaikuImpl&) = delete;
++  OzonePlatformHaikuImpl& operator=(const OzonePlatformHaikuImpl&) = delete;
++
++  ~OzonePlatformHaikuImpl() override = default;
++
++  // OzonePlatform:
++  ui::SurfaceFactoryOzone* GetSurfaceFactoryOzone() override {
++    return surface_factory_.get();
++  }
++  OverlayManagerOzone* GetOverlayManager() override {
++    return overlay_manager_.get();
++  }
++  CursorFactory* GetCursorFactory() override { return cursor_factory_.get(); }
++  InputController* GetInputController() override {
++    return input_controller_.get();
++  }
++  GpuPlatformSupportHost* GetGpuPlatformSupportHost() override {
++    return gpu_platform_support_host_.get();
++  }
++  std::unique_ptr<SystemInputInjector> CreateSystemInputInjector() override {
++    return nullptr;
++  }
++  std::unique_ptr<PlatformWindow> CreatePlatformWindow(
++      PlatformWindowDelegate* delegate,
++      PlatformWindowInitProperties properties) override {
++    return std::make_unique<HaikuWindow>(delegate, window_manager_.get(),
++                                         properties.bounds,
++                                         properties.type == PlatformWindowType::kTooltip);
++  }
++  bool IsWindowCompositingSupported() const override { return false; }
++  std::unique_ptr<display::NativeDisplayDelegate> CreateNativeDisplayDelegate()
++      override {
++    return nullptr;
++  }
++  std::unique_ptr<PlatformScreen> CreateScreen() override {
++    return std::make_unique<HaikuScreen>(window_manager_.get());
++  }
++  void InitScreen(PlatformScreen* screen) override {}
++  std::unique_ptr<InputMethod> CreateInputMethod(
++      ImeKeyEventDispatcher* ime_key_event_dispatcher,
++      gfx::AcceleratedWidget widget) override {
++    return std::make_unique<InputMethodMinimal>(ime_key_event_dispatcher);
++  }
++
++#if BUILDFLAG(IS_LINUX) && !BUILDFLAG(IS_CASTOS)
++  const PlatformProperties& GetPlatformProperties() override {
++    static base::NoDestructor<OzonePlatform::PlatformProperties> properties;
++    static bool initialized = false;
++    if (!initialized) {
++      // Use Haiku's native BWindow frame (DefaultDecorator yellow tab)
++      properties->custom_frame_pref_default = false;
++      initialized = true;
++    }
++    return *properties;
++  }
++#endif
++
++  const PlatformRuntimeProperties& GetPlatformRuntimeProperties() override {
++    static OzonePlatform::PlatformRuntimeProperties properties;
++    properties.supports_server_side_window_decorations = true;
++    return properties;
++  }
++
++  bool InitializeUI(const InitParams& params) override {
++    base::CommandLine* cmd = base::CommandLine::ForCurrentProcess();
++    if (cmd && !cmd->HasSwitch("in-process-gpu")) {
++      cmd->AppendSwitch("in-process-gpu");
++    }
++
++    const auto& capi = HaikuCapi::Get();
++    if (!capi.available || !capi.init_app ||
++        capi.init_app("application/x-vnd.chromium-browser") != 0) {
++      return false;
++    }
++
++    window_manager_ = std::make_unique<HaikuWindowManager>();
++    surface_factory_ =
++        std::make_unique<HaikuSurfaceFactory>(window_manager_.get());
++    if (!PlatformEventSource::GetInstance()) {
++      platform_event_source_ = std::make_unique<HaikuPlatformEventSource>();
++    }
++    keyboard_layout_engine_ = std::make_unique<StubKeyboardLayoutEngine>();
++    KeyboardLayoutEngineManager::SetKeyboardLayoutEngine(
++        keyboard_layout_engine_.get());
++
++    overlay_manager_ = std::make_unique<StubOverlayManager>();
++    input_controller_ = std::make_unique<StubInputController>();
++    cursor_factory_ = std::make_unique<BitmapCursorFactory>();
++    gpu_platform_support_host_.reset(CreateStubGpuPlatformSupportHost());
++
++    return true;
++  }
++
++  void InitializeGPU(const InitParams& params) override {
++    if (!window_manager_) {
++      window_manager_ = std::make_unique<HaikuWindowManager>();
++    }
++    if (!surface_factory_) {
++      surface_factory_ =
++          std::make_unique<HaikuSurfaceFactory>(window_manager_.get());
++    }
++  }
++
++ private:
++  std::unique_ptr<KeyboardLayoutEngine> keyboard_layout_engine_;
++  std::unique_ptr<HaikuWindowManager> window_manager_;
++  std::unique_ptr<HaikuSurfaceFactory> surface_factory_;
++  std::unique_ptr<PlatformEventSource> platform_event_source_;
++  std::unique_ptr<CursorFactory> cursor_factory_;
++  std::unique_ptr<InputController> input_controller_;
++  std::unique_ptr<GpuPlatformSupportHost> gpu_platform_support_host_;
++  std::unique_ptr<OverlayManagerOzone> overlay_manager_;
++};
++
++}  // namespace
++
++OzonePlatform* CreateOzonePlatformHaiku() {
++  return new OzonePlatformHaikuImpl();
++}
++
++}  // namespace ui
+diff --git a/ui/ozone/platform/haiku/ozone_platform_haiku.h b/ui/ozone/platform/haiku/ozone_platform_haiku.h
+new file mode 100644
+index 0000000000..6bec3b9a6b
+--- /dev/null
++++ b/ui/ozone/platform/haiku/ozone_platform_haiku.h
+@@ -0,0 +1,16 @@
++// Copyright 2026 The Chromium Authors
++// SPDX-License-Identifier: MIT
++
++#ifndef UI_OZONE_PLATFORM_HAIKU_OZONE_PLATFORM_HAIKU_H_
++#define UI_OZONE_PLATFORM_HAIKU_OZONE_PLATFORM_HAIKU_H_
++
++#include "ui/ozone/public/ozone_platform.h"
++
++namespace ui {
++
++// Constructor hook for use in ozone_platform_list.cc
++OzonePlatform* CreateOzonePlatformHaiku();
++
++}  // namespace ui
++
++#endif  // UI_OZONE_PLATFORM_HAIKU_OZONE_PLATFORM_HAIKU_H_

@@ -1,0 +1,123 @@
+Computing main repo mapping:
+Loading:
+Loading: 0 packages loaded
+Analyzing: target //rootfs:verify (1 packages loaded, 0 targets configured)
+Analyzing: target //rootfs:verify (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //rootfs:verify (1 packages loaded, 3 targets configured).
+INFO: From Executing genrule //rootfs:image:
+[+] Rootfs image created: <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/rootfs/initramfs.cpio.gz (9837407 bytes, 25 items)
+INFO: Found 1 target...
+Target //rootfs:verify up-to-date:
+  bazel-bin/rootfs/verify
+INFO: Elapsed time: 4.880s, Critical Path: 3.59s
+INFO: 10 processes: 4 action cache hit, 3 internal, 7 local.
+INFO: Build completed successfully, 10 total actions
+INFO: Running command line: bazel-bin/rootfs/verify kernel/bzImage rootfs/initramfs.cpio.gz scripts/verify_gui_boot.py
+Verification started UTC: 2026-10-27T03:19:51.513468+00:00
+Artifact kernel sha256: c0709e515d15624513704ba984d79db9dd6c2a46bf5ca1b9faff7bda5b7a8b59
+Artifact initrd sha256: 16d5336d46870c50451c293b3790ebb536440707800ee44dd370396ee9a74ee3
+[*] Launching QEMU GUI verification: qemu-system-x86_64 -kernel <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/rootfs/verify.runfiles/_main/kernel/bzImage -initrd <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/rootfs/verify.runfiles/_main/rootfs/initramfs.cpio.gz -m 2048M -smp 4 -vga std -device virtio-tablet-pci -netdev user,id=net0 -device virtio-net-pci,netdev=net0 -display none -serial mon:stdio -qmp unix:<qmp-socket>,server,nowait -append console=ttyS0 haiku.mode=gui quiet panic=1 -no-reboot -enable-kvm -cpu host
+
+[serial] =================================================================
+=== Linux + Haiku GUI + Chromium Embedded System (64-bit x86_64) ===
+[serial] =================================================================
+
+[init] Network eth0 configured: 10.0.2.15/24 gw 10.0.2.2 dns 10.0.2.3
+[init] Kernel command line: console=ttyS0 haiku.mode=gui quiet panic=1
+
+[init] Launching Haiku GUI subsystem...
+[+] Verified milestone: '[init] Launching Haiku GUI subsystem...'
+
+[init] Forked app_server with PID 59
+[GlobalFontManager] _AddPath: /boot/system/data/fonts
+could not watch directory 2:14
+[GlobalFontManager] _AddPath: /boot/system/data/fonts
+[GlobalFontManager] _AddPath: /boot/system
+could not watch directory 2:9
+[GlobalFontManager] _AddPath: /boot/system
+[GlobalFontManager] _SetDefaultFonts() entered. Directory count: 2
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system'
+could not watch directory 2:17
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/settings'
+could not watch directory 2:16
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/servers'
+could not watch directory 2:15
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/lib'
+could not watch directory 2:12
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data'
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data/fonts'
+could not watch directory 2:13
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/data/artwork'
+could not watch directory 2:11
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/bin'
+could not watch directory 2:10
+[GlobalFontManager] _ScanFontDirectory path: '/boot/system/apps'
+[GlobalFontManager] _ScanFontsIfNecessary() done. Family count: 3
+[app_server/LinuxFB] Detected /dev/fb0: 1280x800, stride 5120, smem 4096000 bytes
+[Desktop] Init() started for user 0
+app_server: Finding best mode
+[+] Verified milestone: '[GlobalFontManager] _ScanFontsIfNecessary() done.'
+
+[+] Verified milestone: '[app_server/LinuxFB]'
+for 1024x768 (8, 60 Hz, strict) failed
+app_server: Finding best mode for 800x600 (8, 60 Hz) failed
+app_server: Use 0x0 (8) instead.
+[Desktop] Virtual screen configured. HWInterface: 0x55f621a98e60
+[app_server/Evdev] Added input device /dev/input/event2 (AT Translated Set 2 keyboard)
+[app_server/Evdev] Added input device /dev/input/event1 (QEMU Virtio Tablet)
+[app_server/Evdev] Added input device /dev/input/event0 (Power Button)
+[Desktop] Drawing background...
+[Desktop] Init() finished successfully.
+[app_server] Primary Desktop initialized successfully (port 8)
+[app_server] AppServer constructed with status: 0 (Success)
+[app_server] Entering server->Run()...
+[init] app_server ready after 100 ms
+[init] Forked Deskbar with PID 65
+
+[+] Verified milestone: '[init] Forked Deskbar'
+[init] Forked Terminal
+[+] Verified milestone: '[init] Forked Terminal'
+ with PID 76
+[init] Launching Haiku GUI Widget Gallery...
+[init] Forked WidgetGallery with PID 85
+[init] Starting interactive system shell...
+/bin/sh: can't access tty; job control turned off
+/ # [WidgetGallery] Initializing Full-Blown Haiku GUI Widget Gallery...
+[WidgetGallery] Initializing HaikuControlLook fallback...
+[WidgetGallery] _InitLayout start
+[WidgetGallery] Creating BMenuBar...
+[WidgetGallery] Creating BTabView...
+[WidgetGallery] Building Tab 1 (Controls & Toggles)...
+[WidgetGallery] Building Tab 2 (Text & Lists)...
+[WidgetGallery] Building Tab 3 (Sliders & Progress)...
+[WidgetGallery] Building Tab 4 (2D Vector Graphics)...
+[WidgetGallery] _InitLayout complete!
+[WidgetGallery] Full-blown Gallery window launched on Haiku GUI (820x620)
+
+[+] Verified milestone: '[WidgetGallery] Full-blown Gallery window launched'
+
+[*] Waiting 4.5s for app_server and window decor rendering...
+[app_server/Evdev] Added input device /dev/input/event3 (ImExPS/2 Generic Explorer Mouse)
+[*] Connecting to QMP socket <qmp-socket>...
+[*] Bringing Terminal to front (click its window tab) and typing commands via QMP...
+for attempt in 1 2 3 4 5 6 7 8 9 10; do if test -f /run/gui-input-c337c8af2d
+
+8023d53e1c1ab9; then printf '\nGUI_INPUT_PROOF_c337c8af2d8023d53e1c1ab9\n'; brea
+
+k; fi; sleep 1; done
+
+GUI_INPUT_PROOF_c337c8af2d8023d53e1c1ab9
+/ # [+] Verified GUI keyboard input through Terminal and independent serial file check.
+[*] Dumping Terminal proof framebuffer via QMP to <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/rootfs/verify.runfiles/_main/docs/screenshots/haiku-terminal-proof-x86_64.ppm...
+[+] Terminal proof captured: 1280x800, 8369 unique colors
+[+] Converted <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/rootfs/verify.runfiles/_main/docs/screenshots/haiku-terminal-proof-x86_64.ppm -> <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/rootfs/verify.runfiles/_main/docs/screenshots/haiku-terminal-proof-x86_64.png (72751 bytes)
+Artifact screenshot haiku-terminal-proof-x86_64.png sha256: cf66f847d80bd43aad8284e0ddf147e462553fcade03c5e92915d9bc2c43e372
+[*] Sending mouse wheel down/up via QMP...
+[*] Dumping framebuffer via QMP to <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/rootfs/verify.runfiles/_main/docs/screenshots/haiku-gui-x86_64.ppm...
+[+] Framebuffer captured: 1280x800, 11654 unique colors (3072016 bytes)
+[+] Pixel diversity verified: 11654 distinct colors rendered on screen.
+[+] Converted <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/rootfs/verify.runfiles/_main/docs/screenshots/haiku-gui-x86_64.ppm -> <bazel-output>/execroot/_main/bazel-out/k8-fastbuild/bin/rootfs/verify.runfiles/_main/docs/screenshots/haiku-gui-x86_64.png (95464 bytes)
+Artifact screenshot haiku-gui-x86_64.png sha256: 70345c9ae0ab399973ee174c3275fb99880c5de4fdfee4a25892313630980543
+[*] Execution finished in 20.18 seconds.
+[+] Tier 2 Haiku GUI QEMU verification SUCCESSFUL.

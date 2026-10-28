@@ -1,0 +1,297 @@
+{
+  "schema": 3,
+  "date_utc": "2026-10-27",
+  "chromium_rebuilt": true,
+  "chromium_builds": {
+    "x86_64": {
+      "record": "docs/validation/chromium-build-x86_64.json",
+      "sha256": "4e16f3610982b5617f91a3eb5cbeb63faea9cf8952af014ef5febb35cbfccc93",
+      "source_revision": "3bb54dbfa29e4506909fb9d289ad1a28ab76fceb"
+    },
+    "arm64": {
+      "record": "docs/validation/chromium-build-arm64.json",
+      "sha256": "b2c3dc44cbacefcdb5394b0cd94e8d0357efeb642defa7b8cd3f0245be3d71ad",
+      "source_revision": "3bb54dbfa29e4506909fb9d289ad1a28ab76fceb"
+    }
+  },
+  "source_notices": {
+    "record": "docs/validation/source-notices.json",
+    "sha256": "ca44e9468a14bf931baeb0ed386bcfa8521f82fccbacec3b1c5ec6a98d107574"
+  },
+  "gallery": {
+    "record": "docs/validation/gallery.json",
+    "sha256": "1fc41af38ff874832f7f3470d2a48d6628ecd7860d92facefdb20289980265c5"
+  },
+  "desktop": {
+    "record": "docs/validation/desktop-status.json",
+    "sha256": "d565dc7e5b346c83781279e5d7333718a256f82b118c3ad08471b0af0e7c6e21"
+  },
+  "runs": [
+    {
+      "arch": "x86_64",
+      "tier": 1,
+      "result": "PASS",
+      "started_utc": "2026-10-26T23:40:22.285999+00:00",
+      "seconds": 1.83,
+      "log": "docs/validation/tier1-x86_64.txt",
+      "log_sha256": "0ff436e900d4364b8405ec813632981f1d14a1c57fa73032203c15f625f53079"
+    },
+    {
+      "arch": "x86_64",
+      "tier": 2,
+      "result": "PASS",
+      "started_utc": "2026-10-27T03:19:51.513468+00:00",
+      "seconds": 20.18,
+      "log": "docs/validation/tier2-x86_64.txt",
+      "log_sha256": "236990b0d794b5bdd8bfb686c427335873049332998abae158e633119d16d2e1"
+    },
+    {
+      "arch": "x86_64",
+      "tier": 3,
+      "result": "PASS",
+      "started_utc": "2026-10-27T12:49:19.365008+00:00",
+      "seconds": 32.19,
+      "log": "docs/validation/tier3-x86_64.txt",
+      "log_sha256": "0952303efbe0f5c2685f04033dc6a5d6cc9267a988e78c8cce0b1e1e9959578e",
+      "yahoo_title_seconds": 4.7,
+      "page_region_colors": 106101
+    },
+    {
+      "arch": "arm64",
+      "tier": 1,
+      "result": "PASS",
+      "started_utc": "2026-10-26T23:40:25.238323+00:00",
+      "seconds": 4.87,
+      "log": "docs/validation/tier1-arm64.txt",
+      "log_sha256": "072a2203df71360e4905993e456504d514d60669dbf126fb7de803a1a995cc9b"
+    },
+    {
+      "arch": "arm64",
+      "tier": 2,
+      "result": "PASS",
+      "started_utc": "2026-10-27T03:20:18.213186+00:00",
+      "seconds": 80.29,
+      "log": "docs/validation/tier2-arm64.txt",
+      "log_sha256": "8b74afb4fddc2f3f60379911d0897273c37474884b08ed1e4fa849b1045fe92a"
+    },
+    {
+      "arch": "arm64",
+      "tier": 3,
+      "result": "PASS",
+      "started_utc": "2026-10-27T12:46:05.182424+00:00",
+      "seconds": 183.52,
+      "log": "docs/validation/tier3-arm64.txt",
+      "log_sha256": "a22e8b7ef699f2844f38577d77f6d1fbe4b76010be08b19023fe61b65aa051bc",
+      "yahoo_title_seconds": 35.0,
+      "page_region_colors": 87909
+    }
+  ],
+  "artifacts": {
+    "bazel-bin/kernel/bzImage": {
+      "bytes": 6067200,
+      "sha256": "c0709e515d15624513704ba984d79db9dd6c2a46bf5ca1b9faff7bda5b7a8b59"
+    },
+    "bazel-bin/minimal_rootfs/initramfs.cpio.gz": {
+      "bytes": 2500046,
+      "sha256": "ee1de3e81d386fd9d63f01626dfdf6d70139a6110667a5d4849a4f0b1e34ec1e"
+    },
+    "bazel-bin/rootfs/initramfs.cpio.gz": {
+      "bytes": 9837407,
+      "sha256": "16d5336d46870c50451c293b3790ebb536440707800ee44dd370396ee9a74ee3"
+    },
+    "bazel-bin/chromium_rootfs/initramfs.cpio.gz": {
+      "bytes": 193619064,
+      "sha256": "a249d373f04663a79ab9941e2df635f4e4065584c9b29238967abf86e5844041"
+    },
+    "bazel-bin/kernel/Image": {
+      "bytes": 38013440,
+      "sha256": "6b024548f5ced5ca60f3bbded8f0f216561dc3b5adc604b3456fa0283c605b81"
+    },
+    "bazel-bin/minimal_rootfs/initramfs_arm64.cpio.gz": {
+      "bytes": 2291883,
+      "sha256": "d828f6afe8b4c5c71dcaff36d0ec4b9343ddc29a95c0c34355a5d5f7b51ff962"
+    },
+    "bazel-bin/rootfs/initramfs_arm64.cpio.gz": {
+      "bytes": 8859032,
+      "sha256": "c2bc99cc4693e1328beff5618bc4774aa96ec7dc2b8d0ab471296ab5cec35b25"
+    },
+    "bazel-bin/chromium_rootfs/initramfs_arm64.cpio.gz": {
+      "bytes": 194378801,
+      "sha256": "f81b8f3f9eeb5b3c6b4466276ec9b87d32664c7960a71f4068cf29a755bb99ae"
+    },
+    "docs/screenshots/haiku-chromium-arm64.png": {
+      "bytes": 590654,
+      "sha256": "cc3ba01c063dfcf2e2d67ec695c81fb1db98644bdc008a6edab8b1e5d9c91380"
+    },
+    "docs/screenshots/haiku-chromium-x86_64.png": {
+      "bytes": 669861,
+      "sha256": "f6a1e0eb4718d103f556e77acdbb07151a5130021e4191da56da1b9e913d7dd0"
+    },
+    "docs/screenshots/haiku-gui-arm64.png": {
+      "bytes": 91115,
+      "sha256": "034156e4c3e13a73c4404aa881c8c56edae9c5d6ed0da172de14e39409ca0d72"
+    },
+    "docs/screenshots/haiku-gui-x86_64.png": {
+      "bytes": 95464,
+      "sha256": "70345c9ae0ab399973ee174c3275fb99880c5de4fdfee4a25892313630980543"
+    },
+    "docs/screenshots/haiku-terminal-proof-arm64.png": {
+      "bytes": 149663,
+      "sha256": "c5082f734c28a34cf6305b036673384b3b19092d8b203b486cfce35478c5ef92"
+    },
+    "docs/screenshots/haiku-terminal-proof-x86_64.png": {
+      "bytes": 185100,
+      "sha256": "98d2b8f3cc2a3bd13cd350236c78b0fbe4a685bc528e75364723d1e445e64e59"
+    },
+    "docs/screenshots/haiku-widget-gallery-arm64-tab1.png": {
+      "bytes": 90970,
+      "sha256": "53c165dd49fb82b2e4a40a3e239bc05833000ddbe674fa8b7cca90f313831df1"
+    },
+    "docs/screenshots/haiku-widget-gallery-arm64-tab2.png": {
+      "bytes": 90215,
+      "sha256": "8d3551e45560a888dd1f0fa8af47aeccea8eb74249d63200237f78a213ad8d06"
+    },
+    "docs/screenshots/haiku-widget-gallery-arm64-tab3.png": {
+      "bytes": 76941,
+      "sha256": "f47cf2068cf688a6d4a00461ea99f96890b3e3508575724c6bb658e3e8392e6c"
+    },
+    "docs/screenshots/haiku-widget-gallery-arm64-tab4.png": {
+      "bytes": 75275,
+      "sha256": "57415c7424e3b68137dbedbf2782eda675af89d59e17d6b5ed81f1188ce43750"
+    },
+    "docs/screenshots/haiku-widget-gallery-tab1.png": {
+      "bytes": 95299,
+      "sha256": "30e62e4d45b9eeef55757c6e60bca381b991de60c02e4137bcfdc84d42c8944b"
+    },
+    "docs/screenshots/haiku-widget-gallery-tab2.png": {
+      "bytes": 94901,
+      "sha256": "5900f9a9e07b9a3ce37a91a39c170d4e4888ab090c0420fdd7d4ba59e4304ceb"
+    },
+    "docs/screenshots/haiku-widget-gallery-tab3.png": {
+      "bytes": 79799,
+      "sha256": "e80a1b75c3297f768462f6cc55f64988a9136d5b514d91e6cbc1ef8a918ef427"
+    },
+    "docs/screenshots/haiku-widget-gallery-tab4.png": {
+      "bytes": 76762,
+      "sha256": "1aabbf2c0045edb544d4405b9772263c8a8b8828daee38adc561689373805c61"
+    }
+  },
+  "packaged_chromium": {
+    "x86_64": {
+      "chrome": {
+        "bytes": 343425264,
+        "sha256": "248e0463f87e2aeaabac35a3b60af4672b9dc78d7793231857a8a87898149ad9"
+      },
+      "chrome_100_percent.pak": {
+        "bytes": 577100,
+        "sha256": "b07c7f1c0c2c58d02a04613b1f5bc651eb3aaa59d174a6009a096299f99e141b"
+      },
+      "chrome_200_percent.pak": {
+        "bytes": 934715,
+        "sha256": "2cb34e2f01fc520a9fd8d9faa0da0d89c0dfe6ffb7f48c83df0258d7ccf42ba1"
+      },
+      "chrome_crashpad_handler": {
+        "bytes": 2288496,
+        "sha256": "1fb8f42e2cb8a4076f68b1e07ce0cf8af1e9af120e71f4feeab87c933cd7d51b"
+      },
+      "icudtl.dat": {
+        "bytes": 10824432,
+        "sha256": "02a01b3188b6a41a756f7322fdb5e6b5ca6573b327b01dfc8ed662d571a6f769"
+      },
+      "libEGL.so": {
+        "bytes": 235584,
+        "sha256": "09ad43aaad708d60e3c5be1406be5632d1fdd0223787507920c2ee345e2280de"
+      },
+      "libGLESv2.so": {
+        "bytes": 235584,
+        "sha256": "0c5ce228d15a205341bd0d67feb8ce6fa3b6faa8c00a321609a2d6d0fc1081d2"
+      },
+      "libffmpeg.so": {
+        "bytes": 2059464,
+        "sha256": "2460a7b411c0d46a59c4ca3d1a4526662ec57bf9c1e7b15c3b7ba79eff0dd640"
+      },
+      "libvk_swiftshader.so": {
+        "bytes": 5007360,
+        "sha256": "06e80ae10142dd09187e64c2e0ca797d4d964a3bbeb342afc1a104aa4cc8da7f"
+      },
+      "locales/en-US.pak": {
+        "bytes": 597662,
+        "sha256": "8c502945ddcdf6489efa611b049bb720b7ead7bdfffbc0b9626f44e2ec443820"
+      },
+      "resources.pak": {
+        "bytes": 24810261,
+        "sha256": "a825285c1e58dd23169431ddbae5d6b6f0675528004bd6ba8e2fa4be91b839dd"
+      },
+      "snapshot_blob.bin": {
+        "bytes": 367632,
+        "sha256": "c8260f7edf6aa6960a7119fc8ba300a566362aa139730175d13bc1f84b51ecf7"
+      },
+      "v8_context_snapshot.bin": {
+        "bytes": 721712,
+        "sha256": "94b43c1aa27d6ed4a3d152246335dc5a8985d364e5179241215b209c5c40bf88"
+      },
+      "vk_swiftshader_icd.json": {
+        "bytes": 107,
+        "sha256": "c9eef28b6b984fec220ef0abfecc40b502d46946706e47bfe97707027cb818bd"
+      }
+    },
+    "arm64": {
+      "chrome": {
+        "bytes": 347475968,
+        "sha256": "65e9a4692077c831c9055b912f6e6e2b4bfe9ceba9d74af71aef3180269a680d"
+      },
+      "chrome_100_percent.pak": {
+        "bytes": 577100,
+        "sha256": "b07c7f1c0c2c58d02a04613b1f5bc651eb3aaa59d174a6009a096299f99e141b"
+      },
+      "chrome_200_percent.pak": {
+        "bytes": 934715,
+        "sha256": "2cb34e2f01fc520a9fd8d9faa0da0d89c0dfe6ffb7f48c83df0258d7ccf42ba1"
+      },
+      "chrome_crashpad_handler": {
+        "bytes": 2267536,
+        "sha256": "d506d610e76453fa82a40e0d17859bf92ddf0804fdbfc1bd8727527f90cfdb7d"
+      },
+      "icudtl.dat": {
+        "bytes": 10824432,
+        "sha256": "02a01b3188b6a41a756f7322fdb5e6b5ca6573b327b01dfc8ed662d571a6f769"
+      },
+      "libEGL.so": {
+        "bytes": 242472,
+        "sha256": "05bf292866fe8e93644f4fe975fbd7dfc8fc1420f130451c670714674d579be7"
+      },
+      "libGLESv2.so": {
+        "bytes": 242488,
+        "sha256": "6e9c05f866c60cc32396051b0920491e40712b87d154d706771728e6027f83a2"
+      },
+      "libffmpeg.so": {
+        "bytes": 1841560,
+        "sha256": "65f9c622cd817213c11a5b9cc5d21fdd891d13037ea23d064f552d1491c668c3"
+      },
+      "libvk_swiftshader.so": {
+        "bytes": 19478640,
+        "sha256": "f93723804124a6602153aabb4ba81220cc23def093e0ba578d05b82ae789acfc"
+      },
+      "locales/en-US.pak": {
+        "bytes": 597662,
+        "sha256": "8c502945ddcdf6489efa611b049bb720b7ead7bdfffbc0b9626f44e2ec443820"
+      },
+      "resources.pak": {
+        "bytes": 21264587,
+        "sha256": "9a2cd8b3f4d98352c40cc03d0cd2fb50a4a0d04e38084c052d4dcd04d1578fd5"
+      },
+      "snapshot_blob.bin": {
+        "bytes": 367632,
+        "sha256": "2770b7ede194d4b7ce2f745f02d4c08d54162ae6279f6fcb396194fe029e1023"
+      },
+      "v8_context_snapshot.bin": {
+        "bytes": 721712,
+        "sha256": "1be29b65893a8ba55bb841d16b007ef89369851c661f803c1ee09cdf99517376"
+      },
+      "vk_swiftshader_icd.json": {
+        "bytes": 107,
+        "sha256": "c9eef28b6b984fec220ef0abfecc40b502d46946706e47bfe97707027cb818bd"
+      }
+    }
+  }
+}
